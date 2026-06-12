@@ -172,7 +172,7 @@ body{background:#f5f5f5;color:#1a1a1a}
     <div id="tab-records" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-width:0">
       <div class="stat-grid">
         <div class="stat-card"><div class="stat-num" id="s-total">--</div><div class="stat-lbl">Total activities</div></div>
-        <div class="stat-card"><div class="stat-num" id="s-active">--</div><div class="stat-lbl">Active</div></div>
+        <div class="stat-card"><div class="stat-num" id="s-devo-incl">--</div><div class="stat-lbl">Incl. devotionals</div></div>
         <div class="stat-card"><div class="stat-num" id="s-participants">--</div><div class="stat-lbl">Participants</div></div>
         <div class="stat-card"><div class="stat-num" id="s-verify">--</div><div class="stat-lbl">Need verification</div></div>
       </div>
@@ -718,13 +718,14 @@ function applyFilters(){
 
 function updateStats(){
   document.getElementById("s-total").textContent=filteredRecords.length;
-  document.getElementById("s-active").textContent=filteredRecords.filter(r=>r.status==="Active").length;
+  document.getElementById("s-devo-incl").textContent=filteredRecords.filter(r=>(r.devoInc||"").toString().toLowerCase()==="yes").length;
   const pts=filteredRecords.reduce((sum,r)=>sum+(parseInt(r.totalCount)||0),0);
   document.getElementById("s-participants").textContent=pts||"--";
   const units=new Set(filteredRecords.map(r=>r.unit).filter(Boolean));
   const verifyCount=filteredRecords.filter(r=>(r.verifyNeeded||"").toString().toLowerCase()==="yes").length;
   document.getElementById("s-verify").textContent=verifyCount;
-  document.getElementById("topbar-meta").textContent=`${allRecords.length} total activities · 9 units · ${currentCycle}`;
+  const activeCount=allRecords.filter(r=>r.status==="Active").length;
+  document.getElementById("topbar-meta").textContent=`${activeCount} total active · 9 units · ${currentCycle}`;
 }
 
 function renderRecordsList(){
