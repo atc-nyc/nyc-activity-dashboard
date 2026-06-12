@@ -157,7 +157,10 @@ body{background:#f5f5f5;color:#1a1a1a}
   title="Collapse sidebar">&#x276E;</button>
 <h1>&#x1F5FA; NYC Activity Dashboard</h1>
     <span id="topbar-meta">Loading...</span>
-    <button id="btn-new" onclick="openForm(null)">+ New activity</button>
+    <button id="btn-cycle" onclick="openCycleDialog()"
+  style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap"
+  title="Change active cycle">Cycle <span id="cycle-label">83</span></button>
+<button id="btn-new" onclick="openForm(null)">+ New activity</button>
   </div>
 
   <div id="sidebar">
@@ -240,6 +243,27 @@ body{background:#f5f5f5;color:#1a1a1a}
   </div>
 
   <div id="map"></div>
+</div>
+
+<!-- CYCLE DIALOG -->
+<div id="cycle-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:12px;width:420px;padding:28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <h3 style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:6px">Change active cycle</h3>
+    <p style="font-size:13px;color:#555;margin-bottom:16px">The app will read from and write to the sheet named exactly as entered below.</p>
+    <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:12px;color:#7a5800;line-height:1.6">
+      &#x26A0;&#xFE0F; <strong>Before changing the cycle:</strong> make sure the new sheet already exists in the Google Sheet with the exact name you enter here. If the sheet does not exist, the app will fail to load data.
+    </div>
+    <label style="font-size:12px;font-weight:500;color:#555;display:block;margin-bottom:5px">Sheet name</label>
+    <input type="text" id="cycle-input" placeholder="e.g. NYC Activity Dashboard - C84"
+      style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;margin-bottom:6px;outline:none">
+    <p style="font-size:11px;color:#aaa;margin-bottom:18px">Current: <span id="cycle-current-label">NYC Activity Dashboard - C83</span></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="closeCycleDialog()"
+        style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;font-size:13px;cursor:pointer;color:#555">Cancel</button>
+      <button onclick="saveCycle()"
+        style="padding:8px 18px;border:none;border-radius:6px;background:#3949AB;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Update cycle</button>
+    </div>
+  </div>
 </div>
 
 <!-- FORM -->
@@ -565,7 +589,7 @@ function renderMarkers(records){
 async function loadData(){
   try{
     const[recRes,ddRes]=await Promise.all([
-      fetch(`${API}?action=getRecords`),
+      fetch(`${API}?action=getRecords&sheet=${encodeURIComponent(currentSheetName)}`),
       fetch(`${API}?action=getDropdowns`)
     ]);
     const recData=await recRes.json(), ddData=await ddRes.json();
@@ -700,7 +724,7 @@ function updateStats(){
   const units=new Set(filteredRecords.map(r=>r.unit).filter(Boolean));
   const verifyCount=filteredRecords.filter(r=>(r.verifyNeeded||"").toString().toLowerCase()==="yes").length;
   document.getElementById("s-verify").textContent=verifyCount;
-  document.getElementById("topbar-meta").textContent=`${allRecords.length} total activities · 9 units · Cycle 83`;
+  document.getElementById("topbar-meta").textContent=`${allRecords.length} total activities · 9 units · ${currentCycle}`;
 }
 
 function renderRecordsList(){
@@ -927,7 +951,7 @@ function confirmDelete(){
 async function doDelete(){
   const statusEl=document.getElementById("form-status");statusEl.textContent="Deleting...";
   try{
-    const res=await fetch(API,{method:"POST",body:JSON.stringify({action:"deleteRecord",rowIndex:currentRowIndex})});
+    const res=await fetch(API,{method:"POST",body:JSON.stringify({action:"deleteRecord",rowIndex:currentRowIndex,sheet:currentSheetName})});
     const json=await res.json();if(json.error)throw new Error(json.error);
     closeForm();loadData();
   }catch(e){statusEl.textContent="Error: "+e.message;statusEl.style.color="#c62828";}
@@ -950,6 +974,101 @@ function toggleSidebar() {
   setTimeout(() => map.invalidateSize(), 280);
 }
 
+// ── CYCLE MANAGEMENT ─────────────────────────────────────────────────────────
+let currentCycle = "C83";
+let currentSheetName = "NYC Activity Dashboard - C83";
+const ADMIN_PASSPHRASE = "diversity";
+
+function openCycleDialog() {
+  // Prompt for admin passphrase first
+  const authOverlay = document.createElement("div");
+  authOverlay.id = "admin-auth-overlay";
+  authOverlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:4000;display:flex;align-items:center;justify-content:center";
+  authOverlay.innerHTML = `
+    <div style="background:#fff;border-radius:12px;padding:28px;width:340px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+      <div style="font-size:24px;margin-bottom:8px">&#x1F512;</div>
+      <h3 style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:6px">Admin access required</h3>
+      <p style="font-size:13px;color:#888;margin-bottom:16px">Enter the admin passphrase to change the active cycle.</p>
+      <input type="password" id="admin-pass-input" placeholder="Admin passphrase"
+        style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;margin-bottom:6px;outline:none;box-sizing:border-box"
+        onkeydown="if(event.key==='Enter')checkAdminAuth()">
+      <div id="admin-pass-error" style="color:#c62828;font-size:12px;min-height:16px;margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button onclick="document.body.removeChild(document.getElementById('admin-auth-overlay'))"
+          style="padding:7px 14px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;font-size:13px;cursor:pointer;color:#555">Cancel</button>
+        <button onclick="checkAdminAuth()"
+          style="padding:7px 16px;border:none;border-radius:6px;background:#3949AB;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Continue</button>
+      </div>
+    </div>`;
+  document.body.appendChild(authOverlay);
+  setTimeout(() => document.getElementById("admin-pass-input").focus(), 50);
+}
+
+function checkAdminAuth() {
+  const input = document.getElementById("admin-pass-input").value.trim();
+  if (input === ADMIN_PASSPHRASE) {
+    document.body.removeChild(document.getElementById("admin-auth-overlay"));
+    showCycleDialog();
+  } else {
+    document.getElementById("admin-pass-error").textContent = "Incorrect passphrase.";
+    document.getElementById("admin-pass-input").value = "";
+    document.getElementById("admin-pass-input").focus();
+  }
+}
+
+function showCycleDialog() {
+  document.getElementById("cycle-input").value = currentSheetName;
+  document.getElementById("cycle-current-label").textContent = currentSheetName;
+  document.getElementById("cycle-overlay").style.display = "flex";
+  setTimeout(() => document.getElementById("cycle-input").focus(), 50);
+}
+
+function closeCycleDialog() {
+  document.getElementById("cycle-overlay").style.display = "none";
+}
+
+async function saveCycle() {
+  const newSheet = document.getElementById("cycle-input").value.trim();
+  if (!newSheet) return;
+  const saveBtn = document.querySelector("#cycle-overlay button:last-child");
+  saveBtn.textContent = "Saving...";
+  saveBtn.disabled = true;
+  try {
+    // Write new sheet name to Drop Downs I9 via Apps Script
+    const res  = await fetch(API, { method: "POST", body: JSON.stringify({ action: "setActiveCycle", sheetName: newSheet }) });
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+    const match = newSheet.match(/C(\d+)/i);
+    const cycleLabel = match ? match[0].toUpperCase() : newSheet;
+    currentCycle = cycleLabel;
+    currentSheetName = newSheet;
+    document.getElementById("cycle-label").textContent = cycleLabel.replace(/C/i,"");
+    closeCycleDialog();
+    loadData();
+  } catch(e) {
+    alert("Error saving cycle: " + e.message);
+  } finally {
+    saveBtn.textContent = "Update cycle";
+    saveBtn.disabled = false;
+  }
+}
+
+async function fetchActiveCycle() {
+  try {
+    const res  = await fetch(`${API}?action=getActiveCycle`);
+    const json = await res.json();
+    if (json.sheetName) {
+      currentSheetName = json.sheetName;
+      const match = json.sheetName.match(/C(\d+)/i);
+      currentCycle = match ? match[0].toUpperCase() : json.sheetName;
+      const num = currentCycle.replace(/C/i,"");
+      document.getElementById("cycle-label").textContent = num;
+      document.getElementById("topbar-meta").textContent =
+        document.getElementById("topbar-meta").textContent.replace(/C\d+/, currentCycle);
+    }
+  } catch(e) {}
+}
+
 // Passphrase: change this to whatever word or phrase you want
 const PASSPHRASE = "unity";
 
@@ -959,6 +1078,7 @@ function checkAuth() {
   if (input === PASSPHRASE) {
     document.getElementById("auth-overlay").style.display = "none";
     initMap();
+    await fetchActiveCycle();
     loadData();
   } else {
     error.textContent = "Incorrect passphrase. Please try again.";
