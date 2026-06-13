@@ -113,6 +113,15 @@ body{background:#f5f5f5;color:#1a1a1a}
 #loading p{font-size:14px;color:#888}
 .spinner{width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:#3949AB;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.ai-msg-user{background:#3949AB;color:#fff;border-radius:12px 12px 4px 12px;padding:10px 14px;font-size:13px;line-height:1.5;align-self:flex-end;max-width:88%}
+.ai-msg-claude{background:#f4f4f4;color:#1a1a1a;border-radius:12px 12px 12px 4px;padding:10px 14px;font-size:13px;line-height:1.6;align-self:flex-start;max-width:95%;white-space:pre-wrap}
+.ai-msg-error{background:#fce4ec;color:#c62828;border-radius:8px;padding:10px 14px;font-size:12px;align-self:flex-start;max-width:95%}
+.ai-typing{display:flex;gap:4px;padding:10px 14px;background:#f4f4f4;border-radius:12px 12px 12px 4px;align-self:flex-start}
+.ai-typing span{width:7px;height:7px;background:#aaa;border-radius:50%;animation:aitype 1.2s infinite}
+.ai-typing span:nth-child(2){animation-delay:.2s}
+.ai-typing span:nth-child(3){animation-delay:.4s}
+@keyframes aitype{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+#tab-ai{display:none}
 @media (max-width: 600px) {
   #topbar{padding:0 10px;gap:8px}
   #topbar h1{font-size:13px}
@@ -173,6 +182,7 @@ body{background:#f5f5f5;color:#1a1a1a}
     <div id="sidebar-tabs">
       <button class="tab-btn active" onclick="showTab('records')">Records</button>
       <button class="tab-btn" onclick="showTab('filters')">Filters &amp; Legend</button>
+      <button class="tab-btn" onclick="showTab('ai')">Ask AiTC</button>
     </div>
 
     <div id="tab-records" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-width:0">
@@ -246,6 +256,25 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
       </div>
     </div>
+  <div id="tab-ai" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div id="ai-messages" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px">
+      <div style="background:#f0f2ff;border-radius:10px;padding:12px 14px;font-size:13px;color:#3949AB;line-height:1.5">
+        <b>Ask AiTC</b> knows your full activity dataset. Ask anything -- counts, patterns, comparisons, summaries, or generate a report.
+        <div style="margin-top:6px;font-size:11px;color:#666">Examples: "How many active study circles are in Brooklyn?" &bull; "Which units have the most unverified records?" &bull; "Summarize Unit 6 activities"</div>
+      </div>
+    </div>
+    <div style="padding:10px 12px;border-top:1px solid #e0e0e0;background:#fff">
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <textarea id="ai-input" placeholder="Ask a question about your activities..."
+          style="flex:1;padding:8px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;resize:none;min-height:38px;max-height:120px;font-family:inherit;line-height:1.4"
+          onkeydown="aiKeydown(event)" oninput="autoResize(this)"></textarea>
+        <button onclick="sendAiMessage()"
+          style="background:#3949AB;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;height:38px;font-weight:500">Send</button>
+      </div>
+      <div id="ai-status" style="font-size:11px;color:#aaa;margin-top:4px;min-height:14px"></div>
+    </div>
+  </div>
+
   </div>
 
   <div id="map"></div>
@@ -967,9 +996,12 @@ async function doDelete(){
 function showTab(tab){
   document.getElementById("tab-records").style.display=tab==="records"?"flex":"none";
   document.getElementById("tab-filters").style.display=tab==="filters"?"block":"none";
+  document.getElementById("tab-ai").style.display=tab==="ai"?"flex":"none";
   document.querySelectorAll(".tab-btn").forEach((b,i)=>{
-    b.classList.toggle("active",(i===0&&tab==="records")||(i===1&&tab==="filters"));
+    b.classList.toggle("active",
+      (i===0&&tab==="records")||(i===1&&tab==="filters")||(i===2&&tab==="ai"));
   });
+  if(tab==="ai") setTimeout(()=>document.getElementById("ai-input").focus(),100);
 }
 
 function toggleSidebar() {
@@ -1098,6 +1130,113 @@ async function checkAuth() {
 window.addEventListener("load", () => {
   document.getElementById("auth-input").focus();
 });
+
+// ── AI CHAT ───────────────────────────────────────────────────────────────────
+let aiConversation = [];
+
+function autoResize(el) {
+  el.style.height = "auto";
+  el.style.height = Math.min(el.scrollHeight, 120) + "px";
+}
+
+function aiKeydown(e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendAiMessage();
+  }
+}
+
+function buildDataSummary() {
+  const total = allRecords.length;
+  const active = allRecords.filter(r => r.status === "Active").length;
+  const byUnit = {}, byType = {}, byBorough = {};
+  const needVerify = allRecords.filter(r => (r.verifyNeeded||"").toLowerCase() === "yes").length;
+  const needAction = allRecords.filter(r => (r.actionNeeded||"").toLowerCase() === "yes").length;
+  allRecords.forEach(r => {
+    const u = r.unit||"Unknown", t = r.typeGroup||"Unknown", b = r.borough||"Unknown";
+    byUnit[u]=(byUnit[u]||0)+1; byType[t]=(byType[t]||0)+1; byBorough[b]=(byBorough[b]||0)+1;
+  });
+  const recordLines = allRecords.map(r =>
+    [r.devoDesc||r.neighborhood||"Untitled", r.borough, r.neighborhood,
+     r.unit, r.typeGroup, r.activity, r.status, r.hosts,
+     r.recurrence, r.verifyNeeded, r.actionNeeded, r.devoInc,
+     r.numBahais, r.numFof, r.totalCount, r.startDate].join("|")
+  ).join("\n");
+
+  return `You are AiTC, an AI assistant for the NYC Baha'i community activity dashboard (Cycle ${currentCycle}).
+
+DATASET SUMMARY:
+- Total activities: ${total} | Active: ${active} | Need verification: ${needVerify} | Need action: ${needAction}
+- BY UNIT: ${Object.entries(byUnit).map(([k,v])=>k+": "+v).join(", ")}
+- BY TYPE: ${Object.entries(byType).map(([k,v])=>k+": "+v).join(", ")}
+- BY BOROUGH: ${Object.entries(byBorough).map(([k,v])=>k+": "+v).join(", ")}
+
+FULL RECORDS (Description|Borough|Neighborhood|Unit|TypeGroup|Activity|Status|Hosts|Recurrence|VerifyNeeded|ActionNeeded|DevoIncl|Bahais|FoF|Total|StartDate):
+${recordLines}
+
+Answer questions about this data clearly and concisely. For lists use line breaks. For counts be precise. If asked for a report, structure it with clear sections. Always be helpful and friendly.`;
+}
+
+function appendAiMessage(role, text) {
+  const container = document.getElementById("ai-messages");
+  const div = document.createElement("div");
+  if (role === "user")   div.className = "ai-msg-user";
+  if (role === "claude") div.className = "ai-msg-claude";
+  if (role === "error")  div.className = "ai-msg-error";
+  div.textContent = text;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+
+function showTyping() {
+  const container = document.getElementById("ai-messages");
+  const div = document.createElement("div");
+  div.className = "ai-typing"; div.id = "ai-typing-indicator";
+  div.innerHTML = "<span></span><span></span><span></span>";
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById("ai-typing-indicator");
+  if (el) el.remove();
+}
+
+async function sendAiMessage() {
+  const input = document.getElementById("ai-input");
+  const statusEl = document.getElementById("ai-status");
+  const question = input.value.trim();
+  if (!question) return;
+  input.value = ""; input.style.height = "38px";
+  appendAiMessage("user", question);
+  aiConversation.push({ role: "user", content: question });
+  showTyping();
+  statusEl.textContent = "AiTC is thinking...";
+  try {
+    const res = await fetch(API, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "askAI",
+        messages: aiConversation,
+        systemPrompt: buildDataSummary()
+      })
+    });
+    const json = await res.json();
+    removeTyping();
+    if (json.error) throw new Error(json.error);
+    const reply = json.reply;
+    appendAiMessage("claude", reply);
+    aiConversation.push({ role: "assistant", content: reply });
+    statusEl.textContent = "";
+  } catch(e) {
+    removeTyping();
+    appendAiMessage("error", "Error: " + e.message);
+    statusEl.textContent = "";
+    aiConversation.pop();
+  }
+}
+
 </script>
 </body>
 </html>
