@@ -12,6 +12,8 @@
 <title>NYC Activity Dashboard</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMzOTQ5QUIiLz4KICA8cGF0aCBkPSJNMTYgNkMxMi4xMyA2IDkgOS4xMyA5IDEzYzAgNS4yNSA3IDEzIDcgMTNzNy03Ljc1IDctMTNjMC0zLjg3LTMuMTMtNy03LTd6bTAgOS41Yy0xLjM4IDAtMi41LTEuMTItMi41LTIuNXMxLjEyLTIuNSAyLjUtMi41IDIuNSAxLjEyIDIuNSAyLjUtMS4xMiAyLjUtMi41IDIuNXoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPg==">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
@@ -113,15 +115,29 @@ body{background:#f5f5f5;color:#1a1a1a}
 #loading p{font-size:14px;color:#888}
 .spinner{width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:#3949AB;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.ai-msg-user{background:#3949AB;color:#fff;border-radius:12px 12px 4px 12px;padding:10px 14px;font-size:13px;line-height:1.5;align-self:flex-end;max-width:88%}
-.ai-msg-claude{background:#f4f4f4;color:#1a1a1a;border-radius:12px 12px 12px 4px;padding:10px 14px;font-size:13px;line-height:1.6;align-self:flex-start;max-width:95%;white-space:pre-wrap}
-.ai-msg-error{background:#fce4ec;color:#c62828;border-radius:8px;padding:10px 14px;font-size:12px;align-self:flex-start;max-width:95%}
+.ai-msg-user{background:#3949AB;color:#fff;border-radius:16px 16px 4px 16px;padding:12px 16px;font-size:14px;line-height:1.6;align-self:flex-end;max-width:72%;box-shadow:0 1px 3px rgba(57,73,171,.3)}
+.ai-msg-claude{background:#fff;color:#1a1a1a;border-radius:16px 16px 16px 4px;padding:14px 18px;font-size:14px;line-height:1.7;align-self:flex-start;max-width:88%;white-space:pre-wrap;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #e8e8e8}
+.ai-msg-error{background:#fce4ec;color:#c62828;border-radius:10px;padding:12px 16px;font-size:13px;align-self:flex-start;max-width:88%}
 .ai-typing{display:flex;gap:4px;padding:10px 14px;background:#f4f4f4;border-radius:12px 12px 12px 4px;align-self:flex-start}
 .ai-typing span{width:7px;height:7px;background:#aaa;border-radius:50%;animation:aitype 1.2s infinite}
 .ai-typing span:nth-child(2){animation-delay:.2s}
 .ai-typing span:nth-child(3){animation-delay:.4s}
 @keyframes aitype{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
-#tab-ai{display:none}
+.ai-msg-claude h1,.ai-msg-claude h2,.ai-msg-claude h3{font-size:14px;font-weight:700;color:#3949AB;margin:12px 0 6px}
+.ai-msg-claude h1{font-size:16px;border-bottom:1px solid #e0e0f0;padding-bottom:6px;margin-bottom:10px}
+.ai-msg-claude p{margin:0 0 8px}
+.ai-msg-claude p:last-child{margin-bottom:0}
+.ai-msg-claude table{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px}
+.ai-msg-claude th{background:#3949AB;color:#fff;padding:8px 12px;text-align:left;font-weight:600;font-size:12px}
+.ai-msg-claude td{padding:7px 12px;border-bottom:1px solid #f0f0f0;color:#333}
+.ai-msg-claude tr:nth-child(even) td{background:#f8f9ff}
+.ai-msg-claude tr:hover td{background:#eef0fc}
+.ai-msg-claude ul,.ai-msg-claude ol{padding-left:18px;margin:6px 0}
+.ai-msg-claude li{margin-bottom:3px}
+.ai-msg-claude strong{font-weight:600;color:#1a1a1a}
+.ai-msg-claude hr{border:none;border-top:1px solid #e0e0e0;margin:12px 0}
+.ai-msg-claude code{background:#f0f0f0;padding:1px 5px;border-radius:3px;font-size:12px}
+#ai-panel{display:none}
 @media (max-width: 600px) {
   #topbar{padding:0 10px;gap:8px}
   #topbar h1{font-size:13px}
@@ -219,7 +235,13 @@ body{background:#f5f5f5;color:#1a1a1a}
         <input type="text" id="search-input" placeholder="Search host, neighborhood, activity..." oninput="applyFilters()">
       </div>
       <div id="records-list"></div>
-      <div id="list-footer">Click a record to view or edit</div>
+      <div id="list-footer" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px">
+  <span id="list-footer-text" style="font-size:11px;color:#aaa">Click a record to view or edit</span>
+  <button onclick="exportToExcel()" title="Export filtered records to Excel"
+    style="background:none;border:1px solid #e0e0e0;border-radius:5px;padding:4px 9px;font-size:11px;color:#555;cursor:pointer;display:flex;align-items:center;gap:4px">
+    &#x1F4C5; Export
+  </button>
+</div>
     </div>
 
     <div id="tab-filters" style="display:none;flex:1;overflow-y:auto">
@@ -256,28 +278,41 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
       </div>
     </div>
-  <div id="tab-ai" style="display:none;flex-direction:column;flex:1;overflow:hidden">
-    <div id="ai-messages" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px">
-      <div style="background:#f0f2ff;border-radius:10px;padding:12px 14px;font-size:13px;color:#3949AB;line-height:1.5">
-        <b>Ask AiTC</b> knows your full activity dataset. Ask anything -- counts, patterns, comparisons, summaries, or generate a report.
-        <div style="margin-top:6px;font-size:11px;color:#666">Examples: "How many active study circles are in Brooklyn?" &bull; "Which units have the most unverified records?" &bull; "Summarize Unit 6 activities"</div>
-      </div>
-    </div>
-    <div style="padding:10px 12px;border-top:1px solid #e0e0e0;background:#fff">
-      <div style="display:flex;gap:8px;align-items:flex-end">
-        <textarea id="ai-input" placeholder="Ask a question about your activities..."
-          style="flex:1;padding:8px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;resize:none;min-height:38px;max-height:120px;font-family:inherit;line-height:1.4"
-          onkeydown="aiKeydown(event)" oninput="autoResize(this)"></textarea>
-        <button onclick="sendAiMessage()"
-          style="background:#3949AB;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;height:38px;font-weight:500">Send</button>
-      </div>
-      <div id="ai-status" style="font-size:11px;color:#aaa;margin-top:4px;min-height:14px"></div>
-    </div>
-  </div>
-
   </div>
 
   <div id="map"></div>
+
+  <!-- AI CHAT FULL PANEL - sits in map column -->
+  <div id="ai-panel" style="display:none;grid-row:2;grid-column:2;flex-direction:column;background:#f8f9ff;overflow:hidden">
+    <div id="ai-messages" style="flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:12px;max-width:860px;width:100%;margin:0 auto;box-sizing:border-box">
+      <div style="background:#fff;border:1px solid #e0e0f0;border-radius:12px;padding:16px 18px;font-size:13px;color:#3949AB;line-height:1.6;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+        <div style="font-weight:600;font-size:14px;margin-bottom:6px">&#x1F916; Ask AiTC</div>
+        Ask anything about your activity dataset -- counts, patterns, comparisons, summaries, or generate a full report.
+        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
+          <span onclick="quickAsk(this)" style="background:#eef0fc;border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;color:#3949AB">How many active study circles are in Brooklyn?</span>
+          <span onclick="quickAsk(this)" style="background:#eef0fc;border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;color:#3949AB">Which units have the most unverified records?</span>
+          <span onclick="quickAsk(this)" style="background:#eef0fc;border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;color:#3949AB">Summarize all Unit 6 activities</span>
+          <span onclick="quickAsk(this)" style="background:#eef0fc;border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;color:#3949AB">Generate a full cycle report</span>
+        </div>
+      </div>
+    </div>
+    <div style="padding:14px 20px;border-top:1px solid #e0e0e0;background:#fff;max-width:860px;width:100%;margin:0 auto;box-sizing:border-box">
+      <div style="display:flex;gap:10px;align-items:flex-end">
+        <textarea id="ai-input" placeholder="Ask a question about your activities... (Shift+Enter for new line)"
+          style="flex:1;padding:10px 14px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;resize:none;min-height:44px;max-height:140px;font-family:inherit;line-height:1.5;outline:none"
+          onkeydown="aiKeydown(event)" oninput="autoResize(this)"></textarea>
+        <button onclick="sendAiMessage()"
+          style="background:#3949AB;color:#fff;border:none;padding:10px 20px;border-radius:10px;font-size:14px;cursor:pointer;white-space:nowrap;height:44px;font-weight:500;letter-spacing:.01em">Send</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:5px">
+      <div id="ai-status" style="font-size:11px;color:#aaa;min-height:15px"></div>
+      <button onclick="saveAiAsPDF()" title="Save conversation as PDF"
+        style="background:none;border:1px solid #e0e0e0;border-radius:5px;padding:4px 9px;font-size:11px;color:#555;cursor:pointer;display:flex;align-items:center;gap:4px">
+        &#x1F4BE; Save as PDF
+      </button>
+    </div>
+    </div>
+  </div>
 </div>
 
 <!-- CYCLE DIALOG -->
@@ -782,7 +817,7 @@ function renderRecordsList(){
     div.onclick=()=>{selectRecord(r.rowIndex);openForm(r);map.setView(getLatLng(r),14,{animate:true});};
     list.appendChild(div);
   });
-  document.getElementById("list-footer").textContent=`${filteredRecords.length} record${filteredRecords.length!==1?"s":""} shown`;
+  document.getElementById("list-footer-text").textContent=`${filteredRecords.length} record${filteredRecords.length!==1?"s":""} shown`;
 }
 
 function selectRecord(rowIndex){
@@ -996,12 +1031,22 @@ async function doDelete(){
 function showTab(tab){
   document.getElementById("tab-records").style.display=tab==="records"?"flex":"none";
   document.getElementById("tab-filters").style.display=tab==="filters"?"block":"none";
-  document.getElementById("tab-ai").style.display=tab==="ai"?"flex":"none";
+  // Show/hide map vs AI panel
+  const mapEl = document.getElementById("map");
+  const aiEl  = document.getElementById("ai-panel");
+  if (tab==="ai") {
+    mapEl.style.display = "none";
+    aiEl.style.display  = "flex";
+    setTimeout(()=>document.getElementById("ai-input").focus(),100);
+  } else {
+    mapEl.style.display = "";
+    aiEl.style.display  = "none";
+    if (map) setTimeout(()=>map.invalidateSize(),50);
+  }
   document.querySelectorAll(".tab-btn").forEach((b,i)=>{
     b.classList.toggle("active",
       (i===0&&tab==="records")||(i===1&&tab==="filters")||(i===2&&tab==="ai"));
   });
-  if(tab==="ai") setTimeout(()=>document.getElementById("ai-input").focus(),100);
 }
 
 function toggleSidebar() {
@@ -1180,10 +1225,9 @@ Answer questions about this data clearly and concisely. For lists use line break
 function appendAiMessage(role, text) {
   const container = document.getElementById("ai-messages");
   const div = document.createElement("div");
-  if (role === "user")   div.className = "ai-msg-user";
-  if (role === "claude") div.className = "ai-msg-claude";
-  if (role === "error")  div.className = "ai-msg-error";
-  div.textContent = text;
+  if (role === "user")   { div.className = "ai-msg-user"; div.textContent = text; }
+  if (role === "claude") { div.className = "ai-msg-claude"; div.innerHTML = marked.parse(text); }
+  if (role === "error")  { div.className = "ai-msg-error"; div.textContent = text; }
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
   return div;
@@ -1201,6 +1245,12 @@ function showTyping() {
 function removeTyping() {
   const el = document.getElementById("ai-typing-indicator");
   if (el) el.remove();
+}
+
+function quickAsk(el) {
+  const input = document.getElementById("ai-input");
+  input.value = el.textContent.trim();
+  sendAiMessage();
 }
 
 async function sendAiMessage() {
@@ -1235,6 +1285,91 @@ async function sendAiMessage() {
     statusEl.textContent = "";
     aiConversation.pop();
   }
+}
+
+
+// ── EXCEL EXPORT ──────────────────────────────────────────────────────────────
+function exportToExcel() {
+  if (!filteredRecords.length) {
+    alert("No records to export. Adjust your filters first.");
+    return;
+  }
+  const headers = [
+    "Description","Borough","Neighborhood","Unit","Type Group","Activity",
+    "Status","Recurrence","Start Date","Virtual Only","Street Address","Zip",
+    "Hosts","Contact Email","Contact Phone","Accompaniers","Hosts Incl FoF",
+    "Approx Bahais","Approx FoF","Total","Devo Incl","Action Needed","Action",
+    "Verify Needed","Last Verified","Days Since Verify","Notes"
+  ];
+  const rows = filteredRecords.map(r => [
+    r.devoDesc, r.borough, r.neighborhood, r.unit, r.typeGroup, r.activity,
+    r.status, r.recurrence, r.startDate, r.virtualOnly, r.streetAddress, r.zip,
+    r.hosts, r.contactEmail, r.contactPhone, r.accompaniers, r.hostsInclFof,
+    r.numBahais, r.numFof, r.totalCount, r.devoInc, r.actionNeeded, r.action,
+    r.verifyNeeded, r.lastVerified, r.daysVerify, r.miscNotes
+  ]);
+
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+  // Style header row width
+  ws["!cols"] = headers.map((h,i) => ({ wch: Math.max(h.length, 14) }));
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, currentCycle);
+
+  const filename = `NYC_Activities_${currentCycle}_${new Date().toISOString().slice(0,10)}.xlsx`;
+  XLSX.writeFile(wb, filename);
+}
+
+// ── PDF EXPORT ────────────────────────────────────────────────────────────────
+function saveAiAsPDF() {
+  const messages = document.getElementById("ai-messages");
+  if (!messages || messages.children.length <= 1) {
+    alert("No conversation to save yet.");
+    return;
+  }
+
+  // Build print window
+  const printWin = window.open("", "_blank");
+  const date = new Date().toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" });
+
+  let body = "";
+  Array.from(messages.children).forEach(el => {
+    if (el.classList.contains("ai-msg-user")) {
+      body += `<div class="user-msg"><strong>Question:</strong> ${el.textContent}</div>`;
+    } else if (el.classList.contains("ai-msg-claude")) {
+      body += `<div class="ai-msg">${el.innerHTML}</div>`;
+    }
+  });
+
+  printWin.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>AiTC Report - ${date}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 40px auto; color: #1a1a1a; line-height: 1.6; }
+    h1 { color: #3949AB; font-size: 20px; border-bottom: 2px solid #3949AB; padding-bottom: 10px; }
+    .meta { font-size: 12px; color: #888; margin-bottom: 28px; }
+    .user-msg { background: #eef0fc; border-left: 3px solid #3949AB; padding: 10px 14px; margin: 16px 0 8px; border-radius: 0 8px 8px 0; font-size: 14px; }
+    .ai-msg { background: #f8f8f8; border: 1px solid #e0e0e0; padding: 14px 16px; border-radius: 8px; font-size: 14px; white-space: pre-wrap; margin-bottom: 16px; }
+    table{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px}
+    th{background:#3949AB;color:#fff;padding:8px 12px;text-align:left;font-weight:600}
+    td{padding:7px 12px;border-bottom:1px solid #e0e0e0}
+    tr:nth-child(even) td{background:#f8f9ff}
+    h1,h2,h3{color:#3949AB}
+    hr{border:none;border-top:1px solid #e0e0e0;margin:12px 0}
+    @media print { body { margin: 20px; } }
+  </style>
+</head>
+<body>
+  <h1>&#x1F5FA; AiTC Report</h1>
+  <div class="meta">NYC Activity Dashboard &bull; ${currentCycle} &bull; Generated ${date}</div>
+  ${body}
+  <script>window.onload = () => { window.print(); }<\/script>
+</body>
+</html>`);
+  printWin.document.close();
 }
 
 </script>
