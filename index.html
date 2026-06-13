@@ -1028,19 +1028,36 @@ async function doDelete(){
   }catch(e){statusEl.textContent="Error: "+e.message;statusEl.style.color="#c62828";}
 }
 
+function isMobile() {
+  return window.innerWidth <= 768;
+}
+
 function showTab(tab){
   document.getElementById("tab-records").style.display=tab==="records"?"flex":"none";
   document.getElementById("tab-filters").style.display=tab==="filters"?"block":"none";
   // Show/hide map vs AI panel
   const mapEl = document.getElementById("map");
   const aiEl  = document.getElementById("ai-panel");
+  const app   = document.getElementById("app");
+  const btn   = document.getElementById("sidebar-toggle-btn");
   if (tab==="ai") {
     mapEl.style.display = "none";
     aiEl.style.display  = "flex";
+    // Auto-collapse sidebar on mobile
+    if (isMobile() && !app.classList.contains("sidebar-collapsed")) {
+      app.classList.add("sidebar-collapsed");
+      if (btn) { btn.innerHTML = "&#x276F;"; btn.title = "Expand sidebar"; }
+      setTimeout(()=>map.invalidateSize(), 280);
+    }
     setTimeout(()=>document.getElementById("ai-input").focus(),100);
   } else {
     mapEl.style.display = "";
     aiEl.style.display  = "none";
+    // Auto-expand sidebar on mobile when leaving AI tab
+    if (isMobile() && app.classList.contains("sidebar-collapsed")) {
+      app.classList.remove("sidebar-collapsed");
+      if (btn) { btn.innerHTML = "&#x276E;"; btn.title = "Collapse sidebar"; }
+    }
     if (map) setTimeout(()=>map.invalidateSize(),50);
   }
   document.querySelectorAll(".tab-btn").forEach((b,i)=>{
