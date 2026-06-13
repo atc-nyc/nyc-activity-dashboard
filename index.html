@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NYC Dashboard">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#3949AB">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiTllDIEFjdGl2aXR5IERhc2hib2FyZCIsInNob3J0X25hbWUiOiJOWUMgRGFzaGJvYXJkIiwiZGVzY3JpcHRpb24iOiJOWUMgQmFoYSdpIENvbW11bml0eSBBY3Rpdml0eSBEYXNoYm9hcmQiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzM5NDlBQiIsInRoZW1lX2NvbG9yIjoiIzM5NDlBQiIsIm9yaWVudGF0aW9uIjoicG9ydHJhaXQtcHJpbWFyeSIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSFpwWlhkQ2IzZzlJakFnTUNBeE9USWdNVGt5SWo0OFkybHlZMnhsSUdONFBTSTVOaUlnWTNrOUlqazJJaUJ5UFNJNU5pSWdabWxzYkQwaUl6TTVORGxCUWlJdlBqeHdZWFJvSUdROUlrMDVOaUF6TWtNM05TNHdJRE15SURVNElEUTVMakFnTlRnZ056QmpNQ0F6TVM0MUlETTRJRGt3SURNNElEa3djek00TFRVNExqVWdNemd0T1RCak1DMHlNUzR3TFRFM0xqQXRNemd0TXpndE16aDZiVEFnTlRFdU5XTXROeTQxSURBdE1UTXVOUzAyTGpBdE1UTXVOUzB4TXk0MVV6ZzRMalVnTlRZdU5TQTVOaUExTmk0MWN6RXpMalVnTmk0d0lERXpMalVnTVRNdU5WTXhNRE11TlNBNE15NDFJRGsySURnekxqVjZJaUJtYVd4c1BTSjNhR2wwWlNJdlBqd3ZjM1puUGc9PSIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn0seyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSFpwWlhkQ2IzZzlJakFnTUNBMU1USWdOVEV5SWo0OFkybHlZMnhsSUdONFBTSXlOVFlpSUdONVBTSXlOVFlpSUhJOUlqSTFOaUlnWm1sc2JEMGlJek01TkRsQlFpSXZQanh3WVhSb0lHUTlJazB5TlRZZ09EVkRNakUwTGpJZ09EVWdNVGd3SURFeE9TNHlJREU0TUNBeE5qRmpNQ0EyTXlBM05pQXhOellnTnpZZ01UYzJjemMyTFRFeE15QTNOaTB4Tnpaak1DMDBNUzQ0TFRNMExqSXROell0TnpZdE56WjZiVEFnTVRBell5MHhOQzQ1SURBdE1qY3RNVEl1TVMweU55MHlOM014TWk0eExUSTNJREkzTFRJM0lESTNJREV5TGpFZ01qY2dNamN0TVRJdU1TQXlOeTB5TnlBeU4zb2lJR1pwYkd3OUluZG9hWFJsSWk4K1BDOXpkbWMrIiwic2l6ZXMiOiI1MTJ4NTEyIiwidHlwZSI6ImltYWdlL3N2Zyt4bWwifV19">
 <title>NYC Activity Dashboard</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMzOTQ5QUIiLz4KICA8cGF0aCBkPSJNMTYgNkMxMi4xMyA2IDkgOS4xMyA5IDEzYzAgNS4yNSA3IDEzIDcgMTNzNy03Ljc1IDctMTNjMC0zLjg3LTMuMTMtNy03LTd6bTAgOS41Yy0xLjM4IDAtMi41LTEuMTItMi41LTIuNXMxLjEyLTIuNSAyLjUtMi41IDIuNSAxLjEyIDIuNSAyLjUtMS4xMiAyLjUtMi41IDIuNXoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPg==">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -10,8 +16,8 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 body{background:#f5f5f5;color:#1a1a1a}
-#app{display:grid;grid-template-columns:300px 1fr;grid-template-rows:52px 1fr;height:100vh;overflow:hidden}
-#topbar{grid-column:1/-1;background:#3949AB;border-bottom:1px solid #2d3a8c;display:flex;align-items:center;padding:0 12px;gap:10px;z-index:1000}
+#app{display:grid;grid-template-columns:300px 1fr;grid-template-rows:52px 1fr;height:100vh;height:100dvh;overflow:hidden}
+#topbar{grid-column:1/-1;background:#3949AB;border-bottom:1px solid #2d3a8c;display:flex;align-items:center;padding:env(safe-area-inset-top) 12px 0;gap:10px;z-index:1000}
 #topbar h1{font-size:15px;font-weight:600;color:#fff;white-space:nowrap}
 #topbar-meta{font-size:12px;color:rgba(255,255,255,0.7);flex:1}
 #btn-new{background:#111;color:#fff;border:2px solid #fff;padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;font-weight:600}
