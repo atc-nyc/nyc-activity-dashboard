@@ -672,8 +672,13 @@ async function loadData(){
     populateUnitFilter();
     populateUnitLegend();
     populateRecordFilters();
-    // Default status filter to Active on load
-    document.getElementById("f-status-filter").value = "Active";
+    if (_savedFilterState) {
+      restoreFilterState(_savedFilterState);
+      _savedFilterState = null;
+    } else {
+      // Default status filter to Active on first load only
+      document.getElementById("f-status-filter").value = "Active";
+    }
     applyFilters();
     document.getElementById("loading").style.display="none";
   }catch(e){
@@ -1073,7 +1078,7 @@ async function saveRecord(){
       const json=await res.json();
       if(json.error)throw new Error(json.error);
       statusEl.textContent="Saved!";statusEl.style.color="#2e7d32";
-      setTimeout(()=>{closeForm();loadData();},900);
+      setTimeout(()=>{closeForm();loadDataPreserveFilters();},900);
     }catch(e){statusEl.textContent="Error: "+e.message;statusEl.style.color="#c62828";}
   });
 }
