@@ -958,7 +958,8 @@ function getFormData(){
     actionNeeded: document.getElementById("f-actionneeded").value,
     action:       document.getElementById("f-action").value,
     miscNotes:    document.getElementById("f-notes").value,
-    lastVerifiedBy: window._verifierName || ""
+    lastVerifiedBy: window._verifierName || "",
+    skipVerification: !window._isVerifying
   };
 }
 
@@ -999,30 +1000,58 @@ function promptVerifierName(callback) {
   const overlay = document.createElement("div");
   overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;display:flex;align-items:center;justify-content:center";
   overlay.innerHTML = `
-    <div style="background:#fff;border-radius:12px;padding:28px;width:380px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,.2)">
-      <h3 style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:6px">Who is verifying this record?</h3>
-      <p style="font-size:13px;color:#888;margin-bottom:16px">Your name will be recorded as the last person to verify this activity.</p>
-      <input type="text" id="verifier-name-input" placeholder="Your name"
-        style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;margin-bottom:6px;outline:none;box-sizing:border-box"
-        onkeydown="if(event.key==='Enter')document.getElementById('verifier-confirm-btn').click()">
-      <div id="verifier-error" style="color:#c62828;font-size:12px;min-height:16px;margin-bottom:10px"></div>
+    <div style="background:#fff;border-radius:12px;padding:28px;width:400px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+      <h3 style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:4px">Save record</h3>
+      <p style="font-size:13px;color:#888;margin-bottom:18px">Changes will be saved to the activity dashboard.</p>
+
+      <div style="background:#f8f9ff;border:1px solid #e0e0f0;border-radius:8px;padding:14px 16px;margin-bottom:16px">
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
+          <input type="checkbox" id="verify-checkbox" style="margin-top:2px;width:16px;height:16px;cursor:pointer;accent-color:#3949AB">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:2px">Mark as verified</div>
+            <div style="font-size:12px;color:#888;line-height:1.5">Check this only if you are confirming the activity details are current and accurate.</div>
+          </div>
+        </label>
+      </div>
+
+      <div id="verifier-name-wrap" style="margin-bottom:6px;opacity:0.4;pointer-events:none;transition:opacity .2s">
+        <label style="display:block;font-size:12px;font-weight:500;color:#555;margin-bottom:4px">Verified by <span style="color:#e53935">*</span></label>
+        <input type="text" id="verifier-name-input" placeholder="Your name"
+          style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"
+          onkeydown="if(event.key==='Enter')document.getElementById('verifier-confirm-btn').click()">
+      </div>
+      <div id="verifier-error" style="color:#c62828;font-size:12px;min-height:16px;margin-bottom:12px"></div>
+
       <div style="display:flex;gap:8px;justify-content:flex-end">
         <button onclick="document.body.removeChild(this.closest('[style*=fixed]'))"
           style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;font-size:13px;cursor:pointer;color:#555">Cancel</button>
         <button id="verifier-confirm-btn"
           style="padding:8px 18px;border:none;border-radius:6px;background:#3949AB;color:#fff;font-size:13px;font-weight:600;cursor:pointer"
           onclick="
+            const isVerifying = document.getElementById('verify-checkbox').checked;
             const name = document.getElementById('verifier-name-input').value.trim();
-            if (!name) { document.getElementById('verifier-error').textContent = 'Please enter your name.'; return; }
+            if (isVerifying && !name) { document.getElementById('verifier-error').textContent = 'Please enter your name to mark as verified.'; return; }
             document.body.removeChild(this.closest('[style*=fixed]'));
-            window._verifierName = name;
+            window._isVerifying = isVerifying;
+            window._verifierName = isVerifying ? name : null;
             window._verifierCallback();
-          ">Confirm</button>
+          ">Save</button>
       </div>
     </div>`;
   window._verifierCallback = callback;
   document.body.appendChild(overlay);
-  setTimeout(() => document.getElementById("verifier-name-input").focus(), 50);
+
+  // Enable/disable name field based on checkbox
+  setTimeout(() => {
+    const cb = document.getElementById("verify-checkbox");
+    const wrap = document.getElementById("verifier-name-wrap");
+    const input = document.getElementById("verifier-name-input");
+    cb.addEventListener("change", () => {
+      wrap.style.opacity = cb.checked ? "1" : "0.4";
+      wrap.style.pointerEvents = cb.checked ? "auto" : "none";
+      if (cb.checked) input.focus();
+    });
+  }, 50);
 }
 
 async function saveRecord(){
