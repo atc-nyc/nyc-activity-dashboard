@@ -526,6 +526,7 @@ let allRecords=[], filteredRecords=[], dropdowns={}, resourceList=[];
 let map, markersLayer, polygonsLayer;
 let currentRowIndex=null;
 let hostsSelected=[], accSelected=[];
+let _savedFilterState=null;
 
 // ── TAG INPUT ─────────────────────────────────────────────────────────────────
 function focusTagInput(id){ document.getElementById(id).focus(); }
