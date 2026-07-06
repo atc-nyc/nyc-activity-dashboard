@@ -682,6 +682,7 @@ async function loadData(){
     }
     applyFilters();
     document.getElementById("loading").style.display="none";
+    return true;
   }catch(e){
     document.getElementById("loading").innerHTML=`<p style="color:#c62828;font-size:14px">Failed to load data.</p><p style="font-size:12px;color:#888;margin-top:8px">${e.message}</p>`;
   }
@@ -1079,7 +1080,10 @@ async function saveRecord(){
       const json=await res.json();
       if(json.error)throw new Error(json.error);
       statusEl.textContent="Saved!";statusEl.style.color="#2e7d32";
-      setTimeout(()=>{closeForm();loadDataPreserveFilters();},900);
+      setTimeout(async ()=>{
+        closeForm();
+        await loadDataPreserveFilters();
+      },900);
     }catch(e){statusEl.textContent="Error: "+e.message;statusEl.style.color="#c62828";}
   });
 }
