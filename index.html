@@ -1080,6 +1080,47 @@ async function saveRecord(){
       const json=await res.json();
       if(json.error)throw new Error(json.error);
       statusEl.textContent="Saved!";statusEl.style.color="#2e7d32";
+      // Update the record in allRecords immediately so reopening shows fresh data
+      const savedData = getFormData();
+      if (currentRowIndex) {
+        const idx = allRecords.findIndex(r => r.rowIndex === currentRowIndex);
+        if (idx !== -1) {
+          allRecords[idx] = Object.assign(allRecords[idx], {
+            borough:       savedData.borough,
+            neighborhood:  savedData.neighborhood,
+            activity:      savedData.activity,
+            typeGroup:     savedData.typeGroup,
+            devoDesc:      savedData.devoDesc,
+            devoInc:       savedData.devoInc,
+            streetAddress: savedData.streetAddress,
+            zip:           savedData.zip,
+            unit:          savedData.unit,
+            virtualOnly:   savedData.virtualOnly,
+            startDate:     savedData.startDate,
+            recurrence:    savedData.recurrence,
+            status:        savedData.status,
+            pauseEndDate:  savedData.pauseEndDate,
+            hosts:         savedData.hosts,
+            contactEmail:  savedData.contactEmail,
+            contactPhone:  savedData.contactPhone,
+            accompaniers:  savedData.accompaniers,
+            hostsInclFof:  savedData.hostsInclFof,
+            numBahais:     savedData.numBahais,
+            numFof:        savedData.numFof,
+            actionNeeded:  savedData.actionNeeded,
+            action:        savedData.action,
+            miscNotes:     savedData.miscNotes,
+            lastVerifiedBy: savedData.lastVerifiedBy || allRecords[idx].lastVerifiedBy
+          });
+          if (!savedData.skipVerification) {
+            const today = new Date();
+            const mm = String(today.getMonth()+1).padStart(2,"0");
+            const dd = String(today.getDate()).padStart(2,"0");
+            const yyyy = today.getFullYear();
+            allRecords[idx].lastVerified = mm+"/"+dd+"/"+yyyy;
+          }
+        }
+      }
       setTimeout(async ()=>{
         closeForm();
         await loadDataPreserveFilters();
