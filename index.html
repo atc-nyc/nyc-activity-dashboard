@@ -1388,7 +1388,7 @@ NEEDS ATTENTION: ${JSON.stringify(s.needsAttention||[])}
 `;
   });
   prompt += `\nFor counts use exact figures above. For comparisons compare cycle blocks. Be concise and specific.`;
-  console.log("Prompt built for cycles:", cycleNames.map(c=>c.replace("NYC Activity Dashboard - ","")));
+
   return prompt;
 }
 
@@ -1430,12 +1430,7 @@ async function sendAiMessage() {
   const statusEl = document.getElementById("ai-status");
   const question = input.value.trim();
   if (!question) return;
-  console.log("aiCycleData keys:", aiCycleData ? Object.keys(aiCycleData) : "null");
-  if (aiCycleData) {
-    Object.keys(aiCycleData).forEach(k => {
-      console.log(k + " records:", aiCycleData[k]?.stats?.total);
-    });
-  }
+
   input.value = ""; input.style.height = "38px";
   appendAiMessage("user", question);
   aiConversation.push({ role: "user", content: question });
