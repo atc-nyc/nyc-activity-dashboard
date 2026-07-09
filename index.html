@@ -1355,34 +1355,41 @@ function aiKeydown(e) {
 }
 
 function buildDataSummary() {
-  const total = allRecords.length;
-  const active = allRecords.filter(r => r.status === "Active").length;
-  const byUnit = {}, byType = {}, byBorough = {};
-  const needVerify = allRecords.filter(r => (r.verifyNeeded||"").toLowerCase() === "yes").length;
-  const needAction = allRecords.filter(r => (r.actionNeeded||"").toLowerCase() === "yes").length;
-  allRecords.forEach(r => {
-    const u = r.unit||"Unknown", t = r.typeGroup||"Unknown", b = r.borough||"Unknown";
-    byUnit[u]=(byUnit[u]||0)+1; byType[t]=(byType[t]||0)+1; byBorough[b]=(byBorough[b]||0)+1;
+  if (!aiCycleData || Object.keys(aiCycleData).length === 0) {
+    return `You are AiTC. Data is still loading, please wait and try again.`;
+  }
+  const cycleNames = Object.keys(aiCycleData);
+  let prompt = `You are AiTC, an AI assistant for the NYC Baha\'i community activity dashboard.
+
+IMPORTANT: All counts below are EXACT values computed server-side. Use them directly without recalculating.
+
+LOADED CYCLES: ${cycleNames.map(c=>c.replace("NYC Activity Dashboard - ","")).join(", ")}
+`;
+  cycleNames.forEach(cycleName => {
+    const d = aiCycleData[cycleName];
+    if (!d || !d.stats) return;
+    const s = d.stats;
+    const label = cycleName.replace("NYC Activity Dashboard - ","");
+    prompt += `
+═══════════════════════════════════════
+CYCLE: ${label}
+═══════════════════════════════════════
+COUNTS: Total=${s.total} | Active=${s.byStatus["Active"]||0} | Paused=${s.byStatus["Paused"]||0} | Ended=${s.byStatus["Ended"]||0} | Pre-Planning=${s.byStatus["Pre-Planning"]||0}
+Verify needed=${s.needVerify} | Action needed=${s.needAction} | Devo incl=${s.devoIncl} | Virtual=${s.virtualOnly}
+PARTICIPANTS: Bahais=${s.totalBahais} | FoF=${s.totalFof} | Total=${s.totalParticipants}
+BY UNIT: ${Object.entries(s.byUnit||{}).map(([k,v])=>k+"="+v).join(" | ")}
+BY TYPE: ${Object.entries(s.byType||{}).map(([k,v])=>k+"="+v).join(" | ")}
+BY BOROUGH: ${Object.entries(s.byBorough||{}).map(([k,v])=>k+"="+v).join(" | ")}
+BY RECURRENCE: ${Object.entries(s.byRecurrence||{}).map(([k,v])=>k+"="+v).join(" | ")}
+TOP HOSTS: ${(s.topHosts||[]).map(h=>h.name+":"+h.count).join(" | ")}
+ALL RECORDS (Name|Borough|Unit|Type|Status|Hosts|Total|Verify|Action|Devo|StartDate):
+${(s.allRecordsList||[]).join("\n")}
+NEEDS ATTENTION: ${JSON.stringify(s.needsAttention||[])}
+`;
   });
-  const recordLines = allRecords.map(r =>
-    [r.devoDesc||r.neighborhood||"Untitled", r.borough, r.neighborhood,
-     r.unit, r.typeGroup, r.activity, r.status, r.hosts,
-     r.recurrence, r.verifyNeeded, r.actionNeeded, r.devoInc,
-     r.numBahais, r.numFof, r.totalCount, r.startDate].join("|")
-  ).join("\n");
-
-  return `You are AiTC, an AI assistant for the NYC Baha'i community activity dashboard (Cycle ${currentCycle}).
-
-DATASET SUMMARY:
-- Total activities: ${total} | Active: ${active} | Need verification: ${needVerify} | Need action: ${needAction}
-- BY UNIT: ${Object.entries(byUnit).map(([k,v])=>k+": "+v).join(", ")}
-- BY TYPE: ${Object.entries(byType).map(([k,v])=>k+": "+v).join(", ")}
-- BY BOROUGH: ${Object.entries(byBorough).map(([k,v])=>k+": "+v).join(", ")}
-
-FULL RECORDS (Description|Borough|Neighborhood|Unit|TypeGroup|Activity|Status|Hosts|Recurrence|VerifyNeeded|ActionNeeded|DevoIncl|Bahais|FoF|Total|StartDate):
-${recordLines}
-
-Answer questions about this data clearly and concisely. For lists use line breaks. For counts be precise. If asked for a report, structure it with clear sections. Always be helpful and friendly.`;
+  prompt += `\nFor counts use exact figures above. For comparisons compare cycle blocks. Be concise and specific.`;
+  console.log("Prompt built for cycles:", cycleNames.map(c=>c.replace("NYC Activity Dashboard - ","")));
+  return prompt;
 }
 
 function appendAiMessage(role, text) {
