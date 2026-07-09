@@ -1589,17 +1589,19 @@ async function refreshAiData() {
   const selected = sel ? Array.from(sel.selectedOptions).map(o => o.value) : [currentSheetName];
   const cycles = selected.length > 0 ? selected : [currentSheetName];
   const statusEl = document.getElementById("ai-data-status");
-  if (statusEl) statusEl.textContent = "Loading...";
+  if (statusEl) { statusEl.textContent = "Loading..."; statusEl.style.color = "#aaa"; }
   await loadAiData(cycles);
   aiConversation = [];
   const msgs = document.getElementById("ai-messages");
   if (msgs) {
-    // Keep only the first intro card
     while (msgs.children.length > 1) msgs.removeChild(msgs.lastChild);
   }
   if (statusEl) {
-    statusEl.textContent = `Loaded ${cycles.length} cycle${cycles.length>1?"s":""} ✓`;
-    setTimeout(() => { statusEl.textContent = ""; }, 3000);
+    const labels = cycles.map(c => c.replace("NYC Activity Dashboard - ", "")).join(", ");
+    statusEl.textContent = `Active: ${labels}`;
+    statusEl.style.color = "#2e7d32";
+    statusEl.style.fontWeight = "500";
+    // Never auto-clear -- stays visible until new data is loaded
   }
 }
 
