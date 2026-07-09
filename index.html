@@ -1402,7 +1402,16 @@ ${(s.allRecordsList||[]).join("\n")}
 NEEDS ATTENTION: ${JSON.stringify(s.needsAttention||[])}
 `;
   });
-  prompt += `\nFor counts use exact figures above. For comparisons compare cycle blocks. Be concise and specific.`;
+  prompt += `
+QUERY INSTRUCTIONS:
+- ALL RECORDS are tagged with explicit field labels: [NAME:...][BOROUGH:...][TYPE:...][STATUS:...] etc.
+- When filtering records, match ONLY on the labeled field values, not on the record name.
+- Example: "active devotionals in Brooklyn" means [TYPE:Devotional*] AND [BOROUGH:Brooklyn] AND [STATUS:Active] -- do NOT exclude based on the NAME field.
+- For count queries: scan EVERY record exhaustively before answering. Do not approximate.
+- For list queries: return all matching records, not a sample.
+- A record named "Friday Youth Night" with [TYPE:Devotional - Community] IS a devotional. The name is irrelevant to type classification.
+- Always use exact figures from the COUNTS block. Never recalculate.
+- Be concise, specific, and exhaustive.`;
 
   return prompt;
 }
