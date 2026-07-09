@@ -545,6 +545,7 @@ let currentRowIndex=null;
 let hostsSelected=[], accSelected=[];
 let _savedFilterState=null;
 
+
 // ── TAG INPUT ─────────────────────────────────────────────────────────────────
 function focusTagInput(id){ document.getElementById(id).focus(); }
 
@@ -1415,23 +1416,7 @@ function quickAsk(el) {
   sendAiMessage();
 }
 
-async function refreshAiData() {
-  const sel = document.getElementById("ai-cycle-select");
-  const selected = sel
-    ? Array.from(sel.selectedOptions).map(o => o.value)
-    : [currentSheetName];
-  const cycles = selected.length > 0 ? selected : [currentSheetName];
-  const statusEl = document.getElementById("ai-data-status");
-  if (statusEl) statusEl.textContent = "Loading...";
-  await loadAiData(cycles);
-  // Reset conversation when data changes
-  aiConversation = [];
-  document.getElementById("ai-messages").innerHTML = "";
-  if (statusEl) {
-    statusEl.textContent = `Loaded ${cycles.length} cycle${cycles.length>1?"s":""} ✓`;
-    setTimeout(() => { statusEl.textContent = ""; }, 3000);
-  }
-}
+
 
 async function sendAiMessage() {
   const input = document.getElementById("ai-input");
@@ -1550,6 +1535,72 @@ function saveAiAsPDF() {
 </body>
 </html>`);
   printWin.document.close();
+}
+
+
+// ── AI DATA FUNCTIONS ─────────────────────────────────────────────────────────
+let aiCycleData = null;
+let aiAvailableCycles = [];
+
+async function loadAiData(cycleSheets) {
+  try {
+    const res  = await fetch(API, {
+      method: "POST",
+      body: JSON.stringify({ action: "getAiData", sheets: cycleSheets })
+    });
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+    aiCycleData = json.cycleData;
+  } catch(e) {
+    console.error("Failed to load AI data:", e);
+    aiCycleData = null;
+  }
+}
+
+async function loadAvailableCycles() {
+  try {
+    const res  = await fetch(`${API}?action=getAllCycles`);
+    const json = await res.json();
+    aiAvailableCycles = json.cycles || [currentSheetName];
+  } catch(e) {
+    aiAvailableCycles = [currentSheetName];
+  }
+  updateCycleSelector();
+}
+
+function updateCycleSelector() {
+  const sel = document.getElementById("ai-cycle-select");
+  if (!sel) return;
+  sel.innerHTML = "";
+  aiAvailableCycles.forEach(c => {
+    const o = document.createElement("option");
+    o.value = c;
+    o.text  = c.replace("NYC Activity Dashboard - ", "");
+    if (c === currentSheetName) o.selected = true;
+    sel.add(o);
+  });
+  if (sel.selectedOptions.length === 0 && sel.options.length > 0) {
+    sel.options[0].selected = true;
+  }
+}
+
+async function refreshAiData() {
+  const sel = document.getElementById("ai-cycle-select");
+  const selected = sel ? Array.from(sel.selectedOptions).map(o => o.value) : [currentSheetName];
+  const cycles = selected.length > 0 ? selected : [currentSheetName];
+  const statusEl = document.getElementById("ai-data-status");
+  if (statusEl) statusEl.textContent = "Loading...";
+  await loadAiData(cycles);
+  aiConversation = [];
+  const msgs = document.getElementById("ai-messages");
+  if (msgs) {
+    // Keep only the first intro card
+    while (msgs.children.length > 1) msgs.removeChild(msgs.lastChild);
+  }
+  if (statusEl) {
+    statusEl.textContent = `Loaded ${cycles.length} cycle${cycles.length>1?"s":""} ✓`;
+    setTimeout(() => { statusEl.textContent = ""; }, 3000);
+  }
 }
 
 </script>
