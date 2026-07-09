@@ -288,11 +288,28 @@ body{background:#f5f5f5;color:#1a1a1a}
       <div style="background:#fff;border:1px solid #e0e0f0;border-radius:12px;padding:16px 18px;font-size:13px;color:#3949AB;line-height:1.6;box-shadow:0 1px 3px rgba(0,0,0,.06)">
         <div style="font-weight:600;font-size:14px;margin-bottom:6px">&#x1F916; Ask AiTC</div>
         Ask anything about the Activity Dashboard data -- counts, patterns, comparisons, summaries, or even generate a full report.
-        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
+
+        <div style="margin-top:12px;margin-bottom:10px">
+          <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Cycles to include</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <select id="ai-cycle-select" multiple
+              style="font-size:12px;border:1px solid #e0e0e0;border-radius:6px;padding:4px 6px;color:#1a1a1a;min-width:200px;max-height:80px">
+            </select>
+            <button onclick="refreshAiData()"
+              style="background:#3949AB;color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap">
+              Load data
+            </button>
+            <span id="ai-data-status" style="font-size:11px;color:#aaa"></span>
+          </div>
+          <div style="font-size:11px;color:#aaa;margin-top:4px">Hold Ctrl/Cmd to select multiple cycles for comparison</div>
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
           <span onclick="quickAsk(this)" style="background:#eef0fc;border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;color:#3949AB">How many active study circles are in Brooklyn?</span>
           <span onclick="quickAsk(this)" style="background:#eef0fc;border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;color:#3949AB">Which units have the most unverified records?</span>
           <span onclick="quickAsk(this)" style="background:#eef0fc;border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;color:#3949AB">Summarize all Unit 6 activities</span>
           <span onclick="quickAsk(this)" style="background:#eef0fc;border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;color:#3949AB">Generate a full cycle report</span>
+          <span onclick="quickAsk(this)" style="background:#eef0fc;border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;color:#3949AB">Compare activity counts across cycles</span>
         </div>
       </div>
     </div>
@@ -1171,6 +1188,12 @@ function showTab(tab){
       if (btn) { btn.innerHTML = "&#x276F;"; btn.title = "Expand sidebar"; }
       setTimeout(()=>map.invalidateSize(), 280);
     }
+    // Load AI data and available cycles on first open
+    if (!aiCycleData) {
+      loadAvailableCycles().then(() => {
+        refreshAiData();
+      });
+    }
     setTimeout(()=>document.getElementById("ai-input").focus(),100);
   } else {
     mapEl.style.display = "";
@@ -1390,6 +1413,24 @@ function quickAsk(el) {
   const input = document.getElementById("ai-input");
   input.value = el.textContent.trim();
   sendAiMessage();
+}
+
+async function refreshAiData() {
+  const sel = document.getElementById("ai-cycle-select");
+  const selected = sel
+    ? Array.from(sel.selectedOptions).map(o => o.value)
+    : [currentSheetName];
+  const cycles = selected.length > 0 ? selected : [currentSheetName];
+  const statusEl = document.getElementById("ai-data-status");
+  if (statusEl) statusEl.textContent = "Loading...";
+  await loadAiData(cycles);
+  // Reset conversation when data changes
+  aiConversation = [];
+  document.getElementById("ai-messages").innerHTML = "";
+  if (statusEl) {
+    statusEl.textContent = `Loaded ${cycles.length} cycle${cycles.length>1?"s":""} ✓`;
+    setTimeout(() => { statusEl.textContent = ""; }, 3000);
+  }
 }
 
 async function sendAiMessage() {
