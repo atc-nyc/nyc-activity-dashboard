@@ -440,6 +440,14 @@ body{background:#f5f5f5;color:#1a1a1a}
           <select id="f-devoinc"><option value="">-- select --</option></select>
         </div>
       </div>
+      <div class="frow">
+        <div class="field"><label>Publish to Bulletin? <span style="color:#ccc;font-size:11px">(required)</span></label>
+          <select id="f-publish-bulletin" onchange="updateVisibilityFromPublish()"><option value="">-- select --</option></select>
+        </div>
+        <div class="field"><label>Visibility</label>
+          <select id="f-visibility-form"><option value="">-- auto-set --</option><option>Public</option><option>Not-Public</option></select>
+        </div>
+      </div>
 
       <div class="fsec">Participants</div>
       <div class="frow3">
