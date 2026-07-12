@@ -433,8 +433,8 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
       </div>
       <div class="frow">
-        <div class="field"><label>Virtual only? <span style="color:#ccc;font-size:11px">(required)</span></label>
-          <select id="f-virtual"><option value="">-- select --</option><option>Yes</option><option>No</option></select>
+        <div class="field"><label>Attendance Type <span style="color:#ccc;font-size:11px">(required)</span></label>
+          <select id="f-virtual"><option value="">-- select --</option></select>
         </div>
         <div class="field"><label>Devo Incl?</label>
           <select id="f-devoinc"><option value="">-- select --</option></select>
@@ -650,8 +650,8 @@ function initMap() {
 }
 
 // ── MARKERS ───────────────────────────────────────────────────────────────────
-function typeColor(tg){const t=(tg||"").toLowerCase();if(t.includes("study"))return"#4527a0";if(t.includes("children"))return"#1b5e20";if(t.includes("junior")||t.includes("jy"))return"#880e4f";if(t.includes("devotional"))return"#e65100";return"#3949AB";}
-function typeLabel(tg){const t=(tg||"").toLowerCase();if(t.includes("study"))return"SC";if(t.includes("children"))return"CC";if(t.includes("junior")||t.includes("jy"))return"JY";if(t.includes("devotional"))return"D";return"?";}
+function typeColor(tg){const t=(tg||"").toLowerCase();if(t.includes("study"))return"#4527a0";if(t.includes("children"))return"#1b5e20";if(t.includes("junior")||t.includes("jy")||t.includes("jysep"))return"#880e4f";if(t.includes("devotional"))return"#e65100";if(t.includes("community"))return"#111";return"#3949AB";}
+function typeLabel(tg){const t=(tg||"").toLowerCase();if(t.includes("study"))return"SC";if(t.includes("children"))return"CC";if(t.includes("junior")||t.includes("jy")||t.includes("jysep"))return"JY";if(t.includes("devotional"))return"D";if(t.includes("community"))return"CA";return"?";}
 function makeBadge(status){const s=(status||"").toLowerCase().replace(/[-\s]/g,"");if(s==="active")return'<span class="badge b-active">Active</span>';if(s==="paused")return'<span class="badge b-paused">Paused</span>';if(s==="ended")return'<span class="badge b-ended">Ended</span>';if(s==="preplanning")return'<span class="badge b-preplanning">Pre-planning</span>';return`<span class="badge b-other">${status||"--"}</span>`;}
 function typeBadge(tg){const t=(tg||"").toLowerCase();if(t.includes("study"))return'<span class="badge b-sc">SC</span>';if(t.includes("children"))return'<span class="badge b-cc">CC</span>';if(t.includes("junior")||t.includes("jy"))return'<span class="badge b-jy">JY</span>';if(t.includes("devotional"))return'<span class="badge b-devo">Devo</span>';return`<span class="badge b-other">${tg||"--"}</span>`;}
 function verifyBadge(v){if((v||"").toString().toLowerCase()==="yes")return'<span class="badge b-verify">Verify</span>';return"";}
@@ -723,6 +723,7 @@ function populateFormDropdowns(){
   populateSel("f-recurrence-form",dd.recurrence||[]);
   populateSel("f-status-form",    dd.status||[]);
   populateSel("f-devoinc",        dd.yesNo||[]);
+  populateSel("f-virtual",        dd.attendTypes||["In-Person Only","Virtual Only","Hybrid"]);
   const actSel=document.getElementById("f-activity-form");
   while(actSel.options.length>1)actSel.remove(1);
   (dd.activities||[]).forEach(v=>{const o=document.createElement("option");o.value=o.text=v.toString().trim();actSel.add(o);});
@@ -1013,7 +1014,7 @@ function validateForm() {
     { id:"f-recurrence-form", label:"Recurrence" },
     { id:"f-status-form",     label:"Status" },
     // start date excluded from client-side required check -- handled by script
-    { id:"f-virtual",         label:"Virtual only?" },
+    { id:"f-virtual",         label:"Attendance Type" },
     { id:"f-bahais",          label:"Approx. no. of Baha'is" },
     { id:"f-fof",             label:"Approx. no. of FoF" },
     { id:"f-hostsfof",        label:"Hosts include FoF?" },
