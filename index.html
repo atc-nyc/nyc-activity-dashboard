@@ -200,7 +200,6 @@ body{background:#f5f5f5;color:#1a1a1a}
   <div id="sidebar">
     <div id="sidebar-tabs">
       <button class="tab-btn active" onclick="showTab('records')">Records</button>
-      <button class="tab-btn" onclick="showTab('filters')">Filters &amp; Legend</button>
       <button class="tab-btn" onclick="showTab('ai')">Ask AiTC</button>
     </div>
 
@@ -257,40 +256,6 @@ body{background:#f5f5f5;color:#1a1a1a}
 </div>
     </div>
 
-    <div id="tab-filters" style="display:none;flex:1;overflow-y:auto">
-      <div id="filter-panel">
-        <div>
-          <div class="filter-label">Borough</div>
-          <select id="f-borough" onchange="applyFilters()">
-            <option value="">All boroughs</option>
-            <option>Brooklyn</option><option>Bronx</option>
-            <option>Manhattan</option><option>Queens</option><option>Staten Island</option>
-            <option>NYC</option>
-          </select>
-        </div>
-        <div>
-          <div class="filter-label">Unit</div>
-          <select id="f-unit" onchange="applyFilters()"><option value="">All units</option></select>
-        </div>
-        <div>
-          <div class="filter-label">Activity type</div>
-          <select id="f-type-map" onchange="applyFilters()">
-            <option value="">All types</option>
-          </select>
-        </div>
-        <div>
-          <div class="filter-label">Status</div>
-          <select id="f-status-filter" onchange="applyFilters()">
-            <option value="">All statuses</option>
-            <option>Active</option><option>Paused</option><option>Ended</option><option>Pre-Planning</option>
-          </select>
-        </div>
-        <div>
-          <div class="filter-label">Unit legend</div>
-          <div class="unit-legend" id="unit-legend"></div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <div id="map"></div>
@@ -1251,7 +1216,6 @@ function isMobile() {
 
 function showTab(tab){
   document.getElementById("tab-records").style.display=tab==="records"?"flex":"none";
-  document.getElementById("tab-filters").style.display=tab==="filters"?"block":"none";
   // Show/hide map vs AI panel
   const mapEl = document.getElementById("map");
   const aiEl  = document.getElementById("ai-panel");
@@ -1285,7 +1249,7 @@ function showTab(tab){
   }
   document.querySelectorAll(".tab-btn").forEach((b,i)=>{
     b.classList.toggle("active",
-      (i===0&&tab==="records")||(i===1&&tab==="filters")||(i===2&&tab==="ai"));
+      (i===0&&tab==="records")||(i===1&&tab==="ai"));
   });
 }
 
