@@ -724,7 +724,7 @@ function populateFormDropdowns(){
   populateSel("f-status-form",    dd.status||[]);
   populateSel("f-devoinc",        dd.yesNo||[]);
   populateSel("f-virtual",        dd.attendTypes||["In-Person Only","Virtual Only","Hybrid"]);
-  populateSel("f-publish-bulletin", dd.yesNo||["Yes","No"]);
+  if (document.getElementById("f-publish-bulletin")) populateSel("f-publish-bulletin", dd.yesNo||["Yes","No"]);
   const actSel=document.getElementById("f-activity-form");
   while(actSel.options.length>1)actSel.remove(1);
   (dd.activities||[]).forEach(v=>{const o=document.createElement("option");o.value=o.text=v.toString().trim();actSel.add(o);});
@@ -1002,8 +1002,8 @@ function getFormData(){
     actionNeeded: document.getElementById("f-actionneeded").value,
     action:       document.getElementById("f-action").value,
     miscNotes:       document.getElementById("f-notes").value,
-    publishBulletin: document.getElementById("f-publish-bulletin").value,
-    visibility:      document.getElementById("f-visibility-form").value,
+    publishBulletin: document.getElementById("f-publish-bulletin")?.value||"",
+    visibility:      document.getElementById("f-visibility-form")?.value||"",
     lastVerifiedBy: window._verifierName || "",
     skipVerification: !window._isVerifying
   };
@@ -1248,10 +1248,11 @@ function showTab(tab){
 }
 
 function updateVisibilityFromPublish() {
-  const pub = document.getElementById("f-publish-bulletin").value;
-  const vis = document.getElementById("f-visibility-form");
-  if (pub === "Yes")  { vis.value = "Public"; }
-  else if (pub === "No") { vis.value = "Not-Public"; }
+  const pubEl = document.getElementById("f-publish-bulletin");
+  const vis   = document.getElementById("f-visibility-form");
+  if (!pubEl || !vis) return;
+  if (pubEl.value === "Yes")  { vis.value = "Public"; }
+  else if (pubEl.value === "No") { vis.value = "Not-Public"; }
 }
 
 function toggleSidebar() {
