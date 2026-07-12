@@ -1171,16 +1171,27 @@ async function saveRecord(){
 
 function confirmDelete(){
   if(!currentRowIndex)return;
-  if(!confirm("Delete this record from the sheet? This cannot be undone."))return;
-  doDelete();
+  document.getElementById("delete-by-input").value="";
+  document.getElementById("delete-reason-input").value="";
+  document.getElementById("delete-prompt-error").textContent="";
+  document.getElementById("delete-overlay").style.display="flex";
+  setTimeout(()=>document.getElementById("delete-by-input").focus(),50);
 }
 
-async function doDelete(){
+function confirmDeleteWithReason(){
+  const deletedBy=document.getElementById("delete-by-input").value.trim();
+  const reason=document.getElementById("delete-reason-input").value.trim();
+  const errEl=document.getElementById("delete-prompt-error");
+  if(!deletedBy||!reason){errEl.textContent="Both fields are required.";return;}
+  document.getElementById("delete-overlay").style.display="none";
+  doDelete(deletedBy,reason);
+}
+
+async function doDelete(deletedBy,deletionReason){
   const statusEl=document.getElementById("form-status");statusEl.textContent="Deleting...";
   try{
-    const res=await fetch(API,{method:"POST",body:JSON.stringify({action:"deleteRecord",app:APP_ID,rowIndex:currentRowIndex,sheet:currentSheetName})});
+    const res=await fetch(API,{method:"POST",body:JSON.stringify({action:"deleteRecord",app:APP_ID,rowIndex:currentRowIndex,sheet:currentSheetName,deletedBy,deletionReason})});
     const json=await res.json();if(json.error)throw new Error(json.error);
-    // Remove from local records immediately
     allRecords=allRecords.filter(r=>r.rowIndex!==currentRowIndex);
     closeForm();applyFilters();loadDataPreserveFilters();
   }catch(e){statusEl.textContent="Error: "+e.message;statusEl.style.color="#c62828";}
@@ -1568,6 +1579,32 @@ function saveAiAsPDF() {
   <div class="meta">NYC Activity Dashboard &bull; ${currentCycle} &bull; Generated ${date}</div>
   ${body}
   <script>window.onload = () => { window.print(); }<\/script>
+
+<!-- DELETION PROMPT -->
+<div id="delete-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10001;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:12px;padding:28px;width:400px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <h3 style="font-size:15px;font-weight:600;color:#c62828;margin-bottom:6px">Delete record</h3>
+    <p style="font-size:13px;color:#888;margin-bottom:16px">This record will be marked as deleted and removed from view. Please provide your name and a reason.</p>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;font-weight:500;color:#555;display:block;margin-bottom:4px">Deleted by <span style="color:#c62828">*</span> <span style="font-size:11px;font-weight:400;color:#aaa">First &amp; Last</span></label>
+      <input type="text" id="delete-by-input" placeholder="Your name"
+        style="width:100%;padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box">
+    </div>
+    <div style="margin-bottom:6px">
+      <label style="font-size:12px;font-weight:500;color:#555;display:block;margin-bottom:4px">Deletion reason <span style="color:#c62828">*</span></label>
+      <textarea id="delete-reason-input" placeholder="Why is this record being deleted?"
+        style="width:100%;padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:13px;outline:none;resize:none;height:70px;box-sizing:border-box;font-family:inherit"></textarea>
+    </div>
+    <div id="delete-prompt-error" style="color:#c62828;font-size:12px;min-height:16px;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="document.getElementById('delete-overlay').style.display='none'"
+        style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;font-size:13px;cursor:pointer;color:#555">Cancel</button>
+      <button onclick="confirmDeleteWithReason()"
+        style="padding:8px 18px;border:none;border-radius:6px;background:#c62828;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Delete</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>`);
   printWin.document.close();
@@ -1642,5 +1679,31 @@ async function refreshAiData() {
 }
 
 </script>
+
+<!-- DELETION PROMPT -->
+<div id="delete-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10001;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:12px;padding:28px;width:400px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <h3 style="font-size:15px;font-weight:600;color:#c62828;margin-bottom:6px">Delete record</h3>
+    <p style="font-size:13px;color:#888;margin-bottom:16px">This record will be marked as deleted and removed from view. Please provide your name and a reason.</p>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;font-weight:500;color:#555;display:block;margin-bottom:4px">Deleted by <span style="color:#c62828">*</span> <span style="font-size:11px;font-weight:400;color:#aaa">First &amp; Last</span></label>
+      <input type="text" id="delete-by-input" placeholder="Your name"
+        style="width:100%;padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box">
+    </div>
+    <div style="margin-bottom:6px">
+      <label style="font-size:12px;font-weight:500;color:#555;display:block;margin-bottom:4px">Deletion reason <span style="color:#c62828">*</span></label>
+      <textarea id="delete-reason-input" placeholder="Why is this record being deleted?"
+        style="width:100%;padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:13px;outline:none;resize:none;height:70px;box-sizing:border-box;font-family:inherit"></textarea>
+    </div>
+    <div id="delete-prompt-error" style="color:#c62828;font-size:12px;min-height:16px;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="document.getElementById('delete-overlay').style.display='none'"
+        style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;font-size:13px;cursor:pointer;color:#555">Cancel</button>
+      <button onclick="confirmDeleteWithReason()"
+        style="padding:8px 18px;border:none;border-radius:6px;background:#c62828;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Delete</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
