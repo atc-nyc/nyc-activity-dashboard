@@ -445,7 +445,7 @@ body{background:#f5f5f5;color:#1a1a1a}
           <select id="f-publish-bulletin" onchange="updateVisibilityFromPublish()"><option value="">-- select --</option></select>
         </div>
         <div class="field"><label>Visibility</label>
-          <select id="f-visibility-form"><option value="">-- auto-set --</option><option>Public</option><option>Not-Public</option></select>
+          <div id="f-visibility-form" style="padding:8px 12px;background:#f5f5f5;border-radius:6px;font-size:13px;color:#555;min-height:34px;border:1px solid #e0e0e0">--</div>
         </div>
       </div>
 
@@ -909,8 +909,9 @@ function openForm(record){
   // Reset
   ["f-borough-form","f-unit-form","f-neighborhood-form","f-activity-form","f-recurrence-form",
    "f-status-form","f-virtual","f-hostsfof","f-actionneeded","f-devoinc"].forEach(id=>setVal(id,""));
+  const visEl=document.getElementById("f-visibility-form");if(visEl)visEl.textContent="--";
   ["f-street","f-zip","f-devodesc","f-typegroup","f-email","f-phone",
-   "f-notes","f-action","f-bahais","f-fof","f-total","f-pausedate","f-publish-bulletin","f-visibility-form"].forEach(id=>setVal(id,""));
+   "f-notes","f-action","f-bahais","f-fof","f-total","f-pausedate","f-publish-bulletin"].forEach(id=>setVal(id,""));
   hostsSelected=[];accSelected=[];renderTags("hosts");renderTags("acc");
 
   const strip=document.getElementById("verify-strip");
@@ -952,7 +953,7 @@ function openForm(record){
     setVal("f-startdate",       record.startDate);
     setVal("f-devoinc",         record.devoInc);
     setVal("f-publish-bulletin", record.publishBulletin);
-    setVal("f-visibility-form",  record.visibility);
+    const visEl=document.getElementById("f-visibility-form"); if(visEl) visEl.textContent=record.visibility||"--";
     setVal("f-virtual",         record.virtualOnly);
     setVal("f-pausedate",       record.pauseEndDate);
     setVal("f-bahais",          record.numBahais);
@@ -1011,7 +1012,7 @@ function getFormData(){
     action:       document.getElementById("f-action").value,
     miscNotes:       document.getElementById("f-notes").value,
     publishBulletin: document.getElementById("f-publish-bulletin")?.value||"",
-    visibility:      document.getElementById("f-visibility-form")?.value||"",
+    visibility:      (document.getElementById("f-visibility-form")?.textContent||"--").replace("--",""),
     lastVerifiedBy: window._verifierName || "",
     skipVerification: !window._isVerifying
   };
@@ -1259,8 +1260,9 @@ function updateVisibilityFromPublish() {
   const pubEl = document.getElementById("f-publish-bulletin");
   const vis   = document.getElementById("f-visibility-form");
   if (!pubEl || !vis) return;
-  if (pubEl.value === "Yes")  { vis.value = "Public"; }
-  else if (pubEl.value === "No") { vis.value = "Not-Public"; }
+  if (pubEl.value === "Yes")       { vis.textContent = "Public"; }
+  else if (pubEl.value === "No")   { vis.textContent = "Not-Public"; }
+  else                             { vis.textContent = "--"; }
 }
 
 function toggleSidebar() {
