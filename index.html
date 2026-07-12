@@ -682,7 +682,7 @@ function renderMarkers(records){
 async function loadData(){
   try{
     const[recRes,ddRes]=await Promise.all([
-      fetch(`${API}?action=getRecords&sheet=${encodeURIComponent(currentSheetName)}`),
+      fetch(`${API}?action=getRecords&app=${APP_ID}&sheet=${encodeURIComponent(currentSheetName)}`),
       fetch(`${API}?action=getDropdowns`)
     ]);
     const recData=await recRes.json(), ddData=await ddRes.json();
@@ -1107,8 +1107,8 @@ async function saveRecord(){
     statusEl.textContent="Saving...";statusEl.style.color="#888";
     try{
       const body=currentRowIndex
-        ?{action:"updateRecord",rowIndex:currentRowIndex,data:getFormData(),sheet:currentSheetName}
-        :{action:"addRecord",data:getFormData(),sheet:currentSheetName};
+        ?{action:"updateRecord",app:APP_ID,rowIndex:currentRowIndex,data:getFormData(),sheet:currentSheetName}
+        :{action:"addRecord",app:APP_ID,data:getFormData(),sheet:currentSheetName};
       const res=await fetch(API,{method:"POST",body:JSON.stringify(body)});
       const json=await res.json();
       if(json.error)throw new Error(json.error);
@@ -1177,7 +1177,7 @@ function confirmDelete(){
 async function doDelete(){
   const statusEl=document.getElementById("form-status");statusEl.textContent="Deleting...";
   try{
-    const res=await fetch(API,{method:"POST",body:JSON.stringify({action:"deleteRecord",rowIndex:currentRowIndex,sheet:currentSheetName})});
+    const res=await fetch(API,{method:"POST",body:JSON.stringify({action:"deleteRecord",app:APP_ID,rowIndex:currentRowIndex,sheet:currentSheetName})});
     const json=await res.json();if(json.error)throw new Error(json.error);
     closeForm();loadData();
   }catch(e){statusEl.textContent="Error: "+e.message;statusEl.style.color="#c62828";}
@@ -1297,7 +1297,7 @@ async function saveCycle() {
   saveBtn.disabled = true;
   try {
     // Write new sheet name to Drop Downs I9 via Apps Script
-    const res  = await fetch(API, { method: "POST", body: JSON.stringify({ action: "setActiveCycle", sheetName: newSheet }) });
+    const res  = await fetch(API, { method: "POST", body: JSON.stringify({ action: "setActiveCycle", app: APP_ID, sheetName: newSheet }) });
     const json = await res.json();
     if (json.error) throw new Error(json.error);
     const match = newSheet.match(/C(\d+)/i);
@@ -1317,7 +1317,7 @@ async function saveCycle() {
 
 async function fetchActiveCycle() {
   try {
-    const res  = await fetch(`${API}?action=getActiveCycle`);
+    const res  = await fetch(`${API}?action=getActiveCycle&app=${APP_ID}`);
     const json = await res.json();
     if (json.sheetName) {
       currentSheetName = json.sheetName;
@@ -1333,6 +1333,7 @@ async function fetchActiveCycle() {
 
 // Passphrase: change this to whatever word or phrase you want
 const PASSPHRASE = "unity";
+const APP_ID = "ad"; // Activity Dashboard
 
 async function checkAuth() {
   const input = document.getElementById("auth-input").value.trim();
@@ -1578,7 +1579,7 @@ async function loadAiData(cycleSheets) {
   try {
     const res  = await fetch(API, {
       method: "POST",
-      body: JSON.stringify({ action: "getAiData", sheets: cycleSheets })
+      body: JSON.stringify({ action: "getAiData", app: APP_ID, sheets: cycleSheets })
     });
     const json = await res.json();
     if (json.error) throw new Error(json.error);
@@ -1591,7 +1592,7 @@ async function loadAiData(cycleSheets) {
 
 async function loadAvailableCycles() {
   try {
-    const res  = await fetch(`${API}?action=getAllCycles`);
+    const res  = await fetch(`${API}?action=getAllCycles&app=${APP_ID}`);
     const json = await res.json();
     aiAvailableCycles = json.cycles || [currentSheetName];
   } catch(e) {
