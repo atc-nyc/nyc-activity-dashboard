@@ -630,7 +630,7 @@ function initMap() {
         e.target.bindTooltip(`<div style="font-size:12px"><b>${unit}</b></div>`,{sticky:true}).openTooltip();
       });
       layer.on("mouseout",e=>{ e.target.setStyle({fillOpacity:0.18,weight:1}); e.target.unbindTooltip(); });
-      layer.on("click",()=>{ document.getElementById("f-unit").value=unit; applyFilters(); showTab("records"); });
+      layer.on("click",()=>{ const u=document.getElementById("f-unit"); if(u) u.value=unit; applyFilters(); showTab("records"); });
       polygonsLayer.addLayer(layer);
     } catch(e){}
   });
@@ -727,8 +727,7 @@ function populateSel(id,items){
 
 function populateUnitFilter(){
   const sel=document.getElementById("f-unit");
-  while(sel.options.length>1)sel.remove(1);
-  VISIBLE_UNITS.forEach(u=>{const o=document.createElement("option");o.value=o.text=u;sel.add(o);});
+  if(sel){while(sel.options.length>1)sel.remove(1);VISIBLE_UNITS.forEach(u=>{const o=document.createElement("option");o.value=o.text=u;sel.add(o);});}
 }
 
 function populateRecordFilters(){
@@ -749,19 +748,20 @@ function populateRecordFilters(){
   const rtSel=document.getElementById("rf-type");
   while(rtSel.options.length>1)rtSel.remove(1);
   (dropdowns.typeGroups||[]).forEach(v=>{const o=document.createElement("option");o.value=o.text=v.toString().trim();rtSel.add(o);});
-  // Map type filter
+  // Map type filter (removed from UI but guard in case)
   const mtSel=document.getElementById("f-type-map");
-  while(mtSel.options.length>1)mtSel.remove(1);
-  (dropdowns.typeGroups||[]).forEach(v=>{const o=document.createElement("option");o.value=o.text=v.toString().trim();mtSel.add(o);});
+  if(mtSel){while(mtSel.options.length>1)mtSel.remove(1);(dropdowns.typeGroups||[]).forEach(v=>{const o=document.createElement("option");o.value=o.text=v.toString().trim();mtSel.add(o);});}
 }
 
 function populateUnitLegend(){
-  const legend=document.getElementById("unit-legend");legend.innerHTML="";
+  const legend=document.getElementById("unit-legend");
+  if(!legend)return;
+  legend.innerHTML="";
   VISIBLE_UNITS.forEach(unit=>{
     const color=UNIT_COLORS[unit]||"#888";
     const div=document.createElement("div");div.className="unit-item";
     div.innerHTML=`<div class="unit-dot" style="background:${color}"></div>${unit}`;
-    div.onclick=()=>{document.getElementById("f-unit").value=unit;applyFilters();showTab("records");};
+    div.onclick=()=>{const u=document.getElementById("f-unit");if(u)u.value=unit;applyFilters();showTab("records");};
     legend.appendChild(div);
   });
 }
@@ -792,10 +792,10 @@ function updateTotal(){
 // ── FILTERS ───────────────────────────────────────────────────────────────────
 function applyFilters(){
   const search  =(document.getElementById("search-input")?.value||"").toLowerCase();
-  const borough =document.getElementById("f-borough")?.value||"";
-  const mapUnit =document.getElementById("f-unit")?.value||"";
-  const mapType =document.getElementById("f-type-map")?.value||"";
-  const mapStatus=document.getElementById("f-status-filter")?.value||"";
+  const borough ="";  // f-borough removed with Filters panel
+  const mapUnit ="";  // f-unit removed with Filters panel
+  const mapType ="";  // f-type-map removed with Filters panel
+  const mapStatus="";  // f-status-filter removed with Filters panel
   const recUnit =document.getElementById("rf-unit")?.value||"";
   const recType =document.getElementById("rf-type")?.value||"";
   const recActivity=document.getElementById("rf-activity")?.value||"";
