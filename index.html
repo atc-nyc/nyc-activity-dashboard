@@ -1353,6 +1353,7 @@ async function checkAuth() {
   const input = document.getElementById("auth-input").value.trim();
   const error = document.getElementById("auth-error");
   if (input === PASSPHRASE) {
+    sessionStorage.setItem("auth", PASSPHRASE);
     document.getElementById("auth-overlay").style.display = "none";
     initMap();
     await fetchActiveCycle();
@@ -1365,8 +1366,16 @@ async function checkAuth() {
 }
 
 // Focus passphrase input on load
-window.addEventListener("load", () => {
-  document.getElementById("auth-input").focus();
+window.addEventListener("load", async () => {
+  if (sessionStorage.getItem("auth") === PASSPHRASE) {
+    sessionStorage.setItem("auth", PASSPHRASE);
+    document.getElementById("auth-overlay").style.display = "none";
+    initMap();
+    await fetchActiveCycle();
+    loadData();
+  } else {
+    document.getElementById("auth-input").focus();
+  }
 });
 
 // ── AI CHAT ───────────────────────────────────────────────────────────────────
