@@ -377,7 +377,11 @@ body{background:#f5f5f5;color:#1a1a1a}
 
       <div class="fsec">Identity</div>
       <div class="field">
-        <label>Short description <span style="color:#aaa;font-weight:400">(activity label)</span> <span style="color:#ccc;font-size:11px">(required)</span></label>
+        <label>Title <span style="color:#ccc;font-size:11px">(required)</span></label>
+        <input type="text" id="f-title-field" placeholder="e.g. Ashley's Meeting of the Minds">
+      </div>
+      <div class="field">
+        <label>Short description <span style="color:#ccc;font-size:11px">(required)</span></label>
         <input type="text" id="f-devodesc" placeholder="e.g. Ashley's Meeting of the Minds">
       </div>
 
@@ -910,6 +914,7 @@ function openForm(record){
   ["f-borough-form","f-unit-form","f-neighborhood-form","f-activity-form","f-recurrence-form",
    "f-status-form","f-virtual","f-hostsfof","f-actionneeded","f-devoinc"].forEach(id=>setVal(id,""));
   const visEl=document.getElementById("f-visibility-form");if(visEl)visEl.textContent="--";
+  const titleEl=document.getElementById("f-title-field");if(titleEl)titleEl.value="";
   ["f-street","f-zip","f-devodesc","f-typegroup","f-email","f-phone",
    "f-notes","f-action","f-bahais","f-fof","f-total","f-pausedate","f-publish-bulletin"].forEach(id=>setVal(id,""));
   hostsSelected=[];accSelected=[];renderTags("hosts");renderTags("acc");
@@ -952,6 +957,8 @@ function openForm(record){
     setVal("f-status-form",     record.status);
     setVal("f-startdate",       record.startDate);
     setVal("f-devoinc",         record.devoInc);
+    const titleFieldEl = document.getElementById("f-title-field");
+    if (titleFieldEl) titleFieldEl.value = record.title || record.devoDesc || "";
     setVal("f-publish-bulletin", record.publishBulletin);
     const visEl=document.getElementById("f-visibility-form"); if(visEl) visEl.textContent=record.visibility||"--";
     setVal("f-virtual",         record.virtualOnly);
@@ -990,7 +997,8 @@ function getFormData(){
     streetAddress:street,
     zip,
     fullAddress,
-    devoDesc:     document.getElementById("f-devodesc").value,
+    devoDesc:     "", // legacy -- Title now handles col K
+    description:  document.getElementById("f-devodesc").value,
     activity:     document.getElementById("f-activity-form").value,
     typeGroup:    document.getElementById("f-typegroup").value,
     devoInc:      document.getElementById("f-devoinc").value,
@@ -1020,6 +1028,7 @@ function getFormData(){
 
 function validateForm() {
   const required = [
+    { id:"f-title-field",      label:"Title" },
     { id:"f-devodesc",        label:"Short description" },
     { id:"f-borough-form",    label:"Borough" },
     { id:"f-unit-form",       label:"Unit" },
