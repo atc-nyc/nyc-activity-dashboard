@@ -724,6 +724,7 @@ function populateFormDropdowns(){
   populateSel("f-status-form",    dd.status||[]);
   populateSel("f-devoinc",        dd.yesNo||[]);
   populateSel("f-virtual",        dd.attendTypes||["In-Person Only","Virtual Only","Hybrid"]);
+  populateSel("f-publish-bulletin", dd.yesNo||["Yes","No"]);
   const actSel=document.getElementById("f-activity-form");
   while(actSel.options.length>1)actSel.remove(1);
   (dd.activities||[]).forEach(v=>{const o=document.createElement("option");o.value=o.text=v.toString().trim();actSel.add(o);});
@@ -901,7 +902,7 @@ function openForm(record){
   ["f-borough-form","f-unit-form","f-neighborhood-form","f-activity-form","f-recurrence-form",
    "f-status-form","f-virtual","f-hostsfof","f-actionneeded","f-devoinc"].forEach(id=>setVal(id,""));
   ["f-street","f-zip","f-devodesc","f-typegroup","f-email","f-phone",
-   "f-notes","f-action","f-bahais","f-fof","f-total","f-pausedate"].forEach(id=>setVal(id,""));
+   "f-notes","f-action","f-bahais","f-fof","f-total","f-pausedate","f-publish-bulletin","f-visibility-form"].forEach(id=>setVal(id,""));
   hostsSelected=[];accSelected=[];renderTags("hosts");renderTags("acc");
 
   const strip=document.getElementById("verify-strip");
@@ -942,6 +943,8 @@ function openForm(record){
     setVal("f-status-form",     record.status);
     setVal("f-startdate",       record.startDate);
     setVal("f-devoinc",         record.devoInc);
+    setVal("f-publish-bulletin", record.publishBulletin);
+    setVal("f-visibility-form",  record.visibility);
     setVal("f-virtual",         record.virtualOnly);
     setVal("f-pausedate",       record.pauseEndDate);
     setVal("f-bahais",          record.numBahais);
@@ -998,7 +1001,9 @@ function getFormData(){
     countGroup,
     actionNeeded: document.getElementById("f-actionneeded").value,
     action:       document.getElementById("f-action").value,
-    miscNotes:    document.getElementById("f-notes").value,
+    miscNotes:       document.getElementById("f-notes").value,
+    publishBulletin: document.getElementById("f-publish-bulletin").value,
+    visibility:      document.getElementById("f-visibility-form").value,
     lastVerifiedBy: window._verifierName || "",
     skipVerification: !window._isVerifying
   };
@@ -1015,6 +1020,7 @@ function validateForm() {
     { id:"f-status-form",     label:"Status" },
     // start date excluded from client-side required check -- handled by script
     { id:"f-virtual",         label:"Attendance Type" },
+    { id:"f-publish-bulletin", label:"Publish to Bulletin?" },
     { id:"f-bahais",          label:"Approx. no. of Baha'is" },
     { id:"f-fof",             label:"Approx. no. of FoF" },
     { id:"f-hostsfof",        label:"Hosts include FoF?" },
@@ -1239,6 +1245,13 @@ function showTab(tab){
     b.classList.toggle("active",
       (i===0&&tab==="records")||(i===1&&tab==="filters")||(i===2&&tab==="ai"));
   });
+}
+
+function updateVisibilityFromPublish() {
+  const pub = document.getElementById("f-publish-bulletin").value;
+  const vis = document.getElementById("f-visibility-form");
+  if (pub === "Yes")  { vis.value = "Public"; }
+  else if (pub === "No") { vis.value = "Not-Public"; }
 }
 
 function toggleSidebar() {
