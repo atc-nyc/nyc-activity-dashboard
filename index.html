@@ -224,6 +224,16 @@ body{background:#f5f5f5;color:#1a1a1a}
             <select id="rf-type" onchange="applyFilters()"><option value="">All types</option></select>
           </div>
         </div>
+        <div class="rf-row">
+          <div>
+            <div class="rf-label">Activity</div>
+            <select id="rf-activity" onchange="applyFilters()"><option value="">All activities</option></select>
+          </div>
+          <div>
+            <div class="rf-label">Status</div>
+            <select id="rf-status-filter" onchange="applyFilters()"><option value="Active">Active</option><option value="">All statuses</option><option>Paused</option><option>Pre-Planning</option><option>Ended</option></select>
+          </div>
+        </div>
         <label class="verify-check">
           <input type="checkbox" id="rf-verify" onchange="applyFilters()">
           Show only records needing verification
@@ -711,7 +721,8 @@ async function loadData(){
       _savedFilterState = null;
     } else {
       // Default status filter to Active on first load only
-      document.getElementById("f-status-filter").value = "Active";
+      const sfEl = document.getElementById("rf-status-filter");
+      if (sfEl) sfEl.value = "Active";
     }
     applyFilters();
     document.getElementById("loading").style.display="none";
@@ -756,6 +767,15 @@ function populateUnitFilter(){
 }
 
 function populateRecordFilters(){
+  const actSel = document.getElementById("rf-activity");
+  if (actSel) {
+    const prev = actSel.value;
+    while (actSel.options.length > 1) actSel.remove(1);
+    (dropdowns.activities||[]).forEach(a => {
+      const o = document.createElement("option"); o.value = o.text = a; actSel.add(o);
+    });
+    actSel.value = prev;
+  }
   // Unit filter in records panel
   const ruSel=document.getElementById("rf-unit");
   while(ruSel.options.length>1)ruSel.remove(1);
@@ -813,6 +833,8 @@ function applyFilters(){
   const mapStatus=document.getElementById("f-status-filter")?.value||"";
   const recUnit =document.getElementById("rf-unit")?.value||"";
   const recType =document.getElementById("rf-type")?.value||"";
+  const recActivity=document.getElementById("rf-activity")?.value||"";
+  const recStatus=document.getElementById("rf-status-filter")?.value||"";
   const recVerify=document.getElementById("rf-verify")?.checked||false;
   const recAction=document.getElementById("rf-action")?.checked||false;
 
@@ -823,6 +845,8 @@ function applyFilters(){
     if(mapStatus&& r.status    !==mapStatus) return false;
     if(recUnit  && r.unit      !==recUnit)   return false;
     if(recType  && r.typeGroup !==recType)   return false;
+    if(recActivity && r.activity !== recActivity) return false;
+    if(recStatus  && r.status   !== recStatus)   return false;
     if(recVerify&& (r.verifyNeeded||"").toString().toLowerCase()!=="yes") return false;
     if(recAction&& (r.actionNeeded||"").toString().toLowerCase()!=="yes") return false;
     if(search){
