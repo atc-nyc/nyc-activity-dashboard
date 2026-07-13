@@ -1840,6 +1840,56 @@ async function refreshAiData() {
   }
 }
 
+
+
+function updateDaysOfWeek() {
+  const checked = [...document.querySelectorAll("#days-of-week-picker input:checked")].map(c => c.value);
+  const hidden = document.getElementById("f-days-of-week");
+  if (hidden) hidden.value = checked.join(", ");
+}
+
+function toggleRecurrenceDetail() {
+  const recEl = document.getElementById("f-recurrence") || document.getElementById("f-recurrence-form");
+  const detail = document.getElementById("recurrence-detail");
+  if (!recEl || !detail) return;
+  const show = recEl.value && recEl.value !== "" && recEl.value !== "One-Off";
+  detail.style.display = show ? "block" : "none";
+}
+
+function populateRecurrenceFields(record) {
+  // Days of week checkboxes
+  const days = (record.daysOfWeek || "").split(",").map(d => d.trim()).filter(Boolean);
+  document.querySelectorAll("#days-of-week-picker input").forEach(cb => {
+    cb.checked = days.includes(cb.value);
+  });
+  updateDaysOfWeek();
+  // Other fields
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+  set("f-week-of-month",    record.weekOfMonth);
+  set("f-event-time",       record.eventTime);
+  set("f-duration",         record.duration);
+  set("f-exception-dates",  record.exceptionDates);
+  set("f-rescheduled-dates",record.rescheduledDates);
+}
+
+function getRecurrenceData() {
+  return {
+    daysOfWeek:       document.getElementById("f-days-of-week")?.value || "",
+    weekOfMonth:      document.getElementById("f-week-of-month")?.value || "",
+    eventTime:        document.getElementById("f-event-time")?.value || "",
+    duration:         document.getElementById("f-duration")?.value || "",
+    exceptionDates:   document.getElementById("f-exception-dates")?.value || "",
+    rescheduledDates: document.getElementById("f-rescheduled-dates")?.value || "",
+  };
+}
+
+function clearRecurrenceFields() {
+  document.querySelectorAll("#days-of-week-picker input").forEach(cb => cb.checked = false);
+  ["f-days-of-week","f-week-of-month","f-event-time","f-duration","f-exception-dates","f-rescheduled-dates"]
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+  const detail = document.getElementById("recurrence-detail");
+  if (detail) detail.style.display = "none";
+}
 </script>
 
 <!-- DELETION PROMPT -->
