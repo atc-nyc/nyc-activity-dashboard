@@ -351,7 +351,7 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
       </div>
 
-      <!-- DETAILS -->
+      <!-- IDENTITY (mirrors CAB) -->
       <div class="form-section">
         <div class="frow full">
           <div class="field">
@@ -367,18 +367,18 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
         <div class="frow">
           <div class="field">
-            <label>Publish to Bulletin? <span style="color:#ccc;font-size:11px">(required)</span></label>
-            <select id="f-publish-bulletin" onchange="updateVisibilityFromPublish()"><option value="">-- select --</option></select>
-          </div>
-          <div class="field">
             <label>Visibility</label>
             <div id="f-visibility-form" style="padding:8px 12px;background:#f5f5f5;border-radius:6px;font-size:13px;color:#555;min-height:34px;border:1px solid #e0e0e0">--</div>
+          </div>
+          <div class="field">
+            <label>Status <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <select id="f-status-form"><option value="">-- select --</option></select>
           </div>
         </div>
         <div class="frow">
           <div class="field">
-            <label>Status <span style="color:#ccc;font-size:11px">(required)</span></label>
-            <select id="f-status-form"><option value="">-- select --</option></select>
+            <label>Publish to Bulletin? <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <select id="f-publish-bulletin" onchange="updateVisibilityFromPublish()"><option value="">-- select --</option></select>
           </div>
           <div class="field">
             <label>Pause / end date</label>
@@ -387,17 +387,17 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
       </div>
 
-      <!-- ACTIVITY -->
+      <!-- ACTIVITY (mirrors CAB) -->
       <div class="form-section">
         <div class="fsec">Activity</div>
         <div class="frow">
           <div class="field">
-            <label>Activity <span style="color:#ccc;font-size:11px">(required)</span></label>
-            <select id="f-activity-form" onchange="onActivityChange()"><option value="">-- select --</option></select>
-          </div>
-          <div class="field">
             <label>Activity Group</label>
             <input type="text" id="f-typegroup" readonly placeholder="Auto-filled" style="background:#f5f5f5">
+          </div>
+          <div class="field">
+            <label>Activity <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <select id="f-activity-form" onchange="onActivityChange()"><option value="">-- select --</option></select>
           </div>
         </div>
         <div class="frow">
@@ -429,82 +429,79 @@ body{background:#f5f5f5;color:#1a1a1a}
           <div class="field">
             <label>Day(s) of Week</label>
             <div id="days-of-week-picker" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
-              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;color:var(--gray-800);cursor:pointer"><input type="checkbox" value="Monday" onchange="updateDaysOfWeek()"> Mon</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;color:var(--gray-800);cursor:pointer"><input type="checkbox" value="Tuesday" onchange="updateDaysOfWeek()"> Tue</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;color:var(--gray-800);cursor:pointer"><input type="checkbox" value="Wednesday" onchange="updateDaysOfWeek()"> Wed</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;color:var(--gray-800);cursor:pointer"><input type="checkbox" value="Thursday" onchange="updateDaysOfWeek()"> Thu</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;color:var(--gray-800);cursor:pointer"><input type="checkbox" value="Friday" onchange="updateDaysOfWeek()"> Fri</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;color:var(--gray-800);cursor:pointer"><input type="checkbox" value="Saturday" onchange="updateDaysOfWeek()"> Sat</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;color:var(--gray-800);cursor:pointer"><input type="checkbox" value="Sunday" onchange="updateDaysOfWeek()"> Sun</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;cursor:pointer"><input type="checkbox" value="Monday" onchange="updateDaysOfWeek()"> Mon</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;cursor:pointer"><input type="checkbox" value="Tuesday" onchange="updateDaysOfWeek()"> Tue</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;cursor:pointer"><input type="checkbox" value="Wednesday" onchange="updateDaysOfWeek()"> Wed</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;cursor:pointer"><input type="checkbox" value="Thursday" onchange="updateDaysOfWeek()"> Thu</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;cursor:pointer"><input type="checkbox" value="Friday" onchange="updateDaysOfWeek()"> Fri</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;cursor:pointer"><input type="checkbox" value="Saturday" onchange="updateDaysOfWeek()"> Sat</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;cursor:pointer"><input type="checkbox" value="Sunday" onchange="updateDaysOfWeek()"> Sun</label>
             </div>
             <input type="hidden" id="f-days-of-week">
           </div>
           <div class="field">
-            <label>Week of Month <span style="font-size:11px;font-weight:400;color:var(--gray-400)">(for monthly)</span></label>
+            <label>Week of Month <span style="font-size:11px;font-weight:400;color:#aaa">(for monthly)</span></label>
             <select id="f-week-of-month">
               <option value="">-- select --</option>
-              <option>1st</option>
-              <option>2nd</option>
-              <option>3rd</option>
-              <option>4th</option>
-              <option>Last</option>
+              <option>1st</option><option>2nd</option><option>3rd</option><option>4th</option><option>Last</option>
             </select>
           </div>
         </div>
         <div class="frow">
           <div class="field">
             <label>Start Time</label>
-            <select id="f-event-time">
+            <select id="f-event-time" onchange="calcDuration()">
               <option value="">-- select --</option>
-              <option>6:00 AM</option><option>6:30 AM</option>
-              <option>7:00 AM</option><option>7:30 AM</option>
-              <option>8:00 AM</option><option>8:30 AM</option>
-              <option>9:00 AM</option><option>9:30 AM</option>
-              <option>10:00 AM</option><option>10:30 AM</option>
-              <option>11:00 AM</option><option>11:30 AM</option>
-              <option>12:00 PM</option><option>12:30 PM</option>
-              <option>1:00 PM</option><option>1:30 PM</option>
-              <option>2:00 PM</option><option>2:30 PM</option>
-              <option>3:00 PM</option><option>3:30 PM</option>
-              <option>4:00 PM</option><option>4:30 PM</option>
-              <option>5:00 PM</option><option>5:30 PM</option>
-              <option>6:00 PM</option><option>6:30 PM</option>
-              <option>7:00 PM</option><option>7:30 PM</option>
-              <option>8:00 PM</option><option>8:30 PM</option>
-              <option>9:00 PM</option><option>9:30 PM</option>
-              <option>10:00 PM</option><option>10:30 PM</option>
-              <option>11:00 PM</option>
+              <option>6:00 AM</option><option>6:30 AM</option><option>7:00 AM</option><option>7:30 AM</option>
+              <option>8:00 AM</option><option>8:30 AM</option><option>9:00 AM</option><option>9:30 AM</option>
+              <option>10:00 AM</option><option>10:30 AM</option><option>11:00 AM</option><option>11:30 AM</option>
+              <option>12:00 PM</option><option>12:30 PM</option><option>1:00 PM</option><option>1:30 PM</option>
+              <option>2:00 PM</option><option>2:30 PM</option><option>3:00 PM</option><option>3:30 PM</option>
+              <option>4:00 PM</option><option>4:30 PM</option><option>5:00 PM</option><option>5:30 PM</option>
+              <option>6:00 PM</option><option>6:30 PM</option><option>7:00 PM</option><option>7:30 PM</option>
+              <option>8:00 PM</option><option>8:30 PM</option><option>9:00 PM</option><option>9:30 PM</option>
+              <option>10:00 PM</option><option>10:30 PM</option><option>11:00 PM</option>
             </select>
           </div>
           <div class="field">
-            <label>Duration</label>
-            <select id="f-duration">
+            <label>End Time</label>
+            <select id="f-end-time" onchange="calcDuration()">
               <option value="">-- select --</option>
-              <option>30 mins</option>
-              <option>1 hour</option>
-              <option>1.5 hours</option>
-              <option>2 hours</option>
-              <option>2.5 hours</option>
-              <option>3 hours</option>
-              <option>3+ hours</option>
+              <option>6:00 AM</option><option>6:30 AM</option><option>7:00 AM</option><option>7:30 AM</option>
+              <option>8:00 AM</option><option>8:30 AM</option><option>9:00 AM</option><option>9:30 AM</option>
+              <option>10:00 AM</option><option>10:30 AM</option><option>11:00 AM</option><option>11:30 AM</option>
+              <option>12:00 PM</option><option>12:30 PM</option><option>1:00 PM</option><option>1:30 PM</option>
+              <option>2:00 PM</option><option>2:30 PM</option><option>3:00 PM</option><option>3:30 PM</option>
+              <option>4:00 PM</option><option>4:30 PM</option><option>5:00 PM</option><option>5:30 PM</option>
+              <option>6:00 PM</option><option>6:30 PM</option><option>7:00 PM</option><option>7:30 PM</option>
+              <option>8:00 PM</option><option>8:30 PM</option><option>9:00 PM</option><option>9:30 PM</option>
+              <option>10:00 PM</option><option>10:30 PM</option><option>11:00 PM</option>
             </select>
           </div>
         </div>
         <div class="frow full">
           <div class="field">
-            <label>Exception Dates <span style="font-size:11px;font-weight:400;color:var(--gray-400)">dates to skip, comma-separated</span></label>
-            <input type="text" id="f-exception-dates" placeholder="e.g. 07/04/2026, 09/07/2026">
+            <label>Duration <span style="font-size:11px;font-weight:400;color:#aaa">auto-calculated from start/end time</span></label>
+            <input type="text" id="f-duration" readonly placeholder="Select start and end time" style="background:#f5f5f5;color:#888">
           </div>
         </div>
         <div class="frow full">
           <div class="field">
-            <label>Rescheduled Dates <span style="font-size:11px;font-weight:400;color:var(--gray-400)">original→new date, comma-separated</span></label>
-            <input type="text" id="f-rescheduled-dates" placeholder="e.g. 07/04/2026→07/05/2026">
+            <label>Exception Dates <span style="font-size:11px;font-weight:400;color:#aaa">dates to skip — MM/DD/YYYY, comma-separated</span></label>
+            <input type="text" id="f-exception-dates" placeholder="e.g. 07/04/2026, 09/07/2026" oninput="validateDateField(this,'exception-dates-err')">
+            <div id="exception-dates-err" style="color:#c62828;font-size:11px;min-height:14px;margin-top:2px"></div>
+          </div>
+        </div>
+        <div class="frow full">
+          <div class="field">
+            <label>Rescheduled Dates <span style="font-size:11px;font-weight:400;color:#aaa">original > new date, comma-separated</span></label>
+            <input type="text" id="f-rescheduled-dates" placeholder="e.g. 07/04/2026 > 07/05/2026, 08/01/2026 > 08/08/2026" oninput="validateRescheduledField(this,'rescheduled-dates-err')">
+            <div id="rescheduled-dates-err" style="color:#c62828;font-size:11px;min-height:14px;margin-top:2px"></div>
           </div>
         </div>
       </div>
 
-      <!-- LOCATION -->
+      <!-- LOCATION (mirrors CAB) -->
       <div class="form-section">
         <div class="fsec">Location</div>
         <div class="frow">
@@ -563,11 +560,11 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
       </div>
 
-      <!-- HOST & CONTACT -->
+      <!-- HOST & CONTACT (mirrors CAB) -->
       <div class="form-section">
         <div class="fsec">Host &amp; contact</div>
         <div class="field">
-          <label>Hosts / facilitators</label>
+          <label>Hosts / facilitators <span style="font-size:11px;font-weight:400;color:#aaa">separate names with comma ","</span></label>
           <div class="tag-input-container">
             <div class="tag-input-wrap" id="hosts-wrap" onclick="focusTagInput('hosts-input')">
               <div class="tags-list" id="hosts-tags"></div>
@@ -1842,10 +1839,67 @@ async function refreshAiData() {
 
 
 
+
+
 function updateDaysOfWeek() {
   const checked = [...document.querySelectorAll("#days-of-week-picker input:checked")].map(c => c.value);
   const hidden = document.getElementById("f-days-of-week");
   if (hidden) hidden.value = checked.join(", ");
+}
+
+function parseTime12(t) {
+  if (!t) return null;
+  const m = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!m) return null;
+  let h = parseInt(m[1]), min = parseInt(m[2]);
+  const pm = m[3].toUpperCase() === "PM";
+  if (pm && h !== 12) h += 12;
+  if (!pm && h === 12) h = 0;
+  return h * 60 + min;
+}
+
+function calcDuration() {
+  const start = parseTime12(document.getElementById("f-event-time")?.value);
+  const end   = parseTime12(document.getElementById("f-end-time")?.value);
+  const durEl = document.getElementById("f-duration");
+  if (!durEl) return;
+  if (start === null || end === null) { durEl.value = ""; return; }
+  let diff = end - start;
+  if (diff <= 0) { durEl.value = "End time must be after start time"; return; }
+  const hrs = Math.floor(diff / 60);
+  const mins = diff % 60;
+  durEl.value = hrs > 0 ? (mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`) : `${mins}m`;
+}
+
+function isValidDate(s) {
+  const m = s.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!m) return false;
+  const d = new Date(parseInt(m[3]), parseInt(m[1])-1, parseInt(m[2]));
+  return d.getMonth() === parseInt(m[1])-1;
+}
+
+function validateDateField(el, errId) {
+  const errEl = document.getElementById(errId);
+  if (!errEl) return;
+  const val = el.value.trim();
+  if (!val) { errEl.textContent = ""; return; }
+  const parts = val.split(",").map(s => s.trim()).filter(Boolean);
+  const bad = parts.filter(p => !isValidDate(p));
+  errEl.textContent = bad.length ? `Invalid date(s): ${bad.join(", ")} — use MM/DD/YYYY` : "";
+}
+
+function validateRescheduledField(el, errId) {
+  const errEl = document.getElementById(errId);
+  if (!errEl) return;
+  const val = el.value.trim();
+  if (!val) { errEl.textContent = ""; return; }
+  const pairs = val.split(",").map(s => s.trim()).filter(Boolean);
+  const bad = [];
+  pairs.forEach(pair => {
+    const parts = pair.split(">").map(s => s.trim());
+    if (parts.length !== 2 || !isValidDate(parts[0]) || !isValidDate(parts[1])) bad.push(pair);
+  });
+  errEl.textContent = bad.length ? `Invalid entry: ${bad.join(", ")} — use MM/DD/YYYY > MM/DD/YYYY` : "";
 }
 
 function toggleRecurrenceDetail() {
@@ -1857,17 +1911,17 @@ function toggleRecurrenceDetail() {
 }
 
 function populateRecurrenceFields(record) {
-  // Days of week checkboxes
+  if (!record) return;
   const days = (record.daysOfWeek || "").split(",").map(d => d.trim()).filter(Boolean);
   document.querySelectorAll("#days-of-week-picker input").forEach(cb => {
     cb.checked = days.includes(cb.value);
   });
   updateDaysOfWeek();
-  // Other fields
   const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
   set("f-week-of-month",    record.weekOfMonth);
   set("f-event-time",       record.eventTime);
-  set("f-duration",         record.duration);
+  set("f-end-time",         record.duration);
+  calcDuration();
   set("f-exception-dates",  record.exceptionDates);
   set("f-rescheduled-dates",record.rescheduledDates);
 }
@@ -1877,7 +1931,7 @@ function getRecurrenceData() {
     daysOfWeek:       document.getElementById("f-days-of-week")?.value || "",
     weekOfMonth:      document.getElementById("f-week-of-month")?.value || "",
     eventTime:        document.getElementById("f-event-time")?.value || "",
-    duration:         document.getElementById("f-duration")?.value || "",
+    duration:         document.getElementById("f-end-time")?.value || "",
     exceptionDates:   document.getElementById("f-exception-dates")?.value || "",
     rescheduledDates: document.getElementById("f-rescheduled-dates")?.value || "",
   };
@@ -1885,8 +1939,13 @@ function getRecurrenceData() {
 
 function clearRecurrenceFields() {
   document.querySelectorAll("#days-of-week-picker input").forEach(cb => cb.checked = false);
-  ["f-days-of-week","f-week-of-month","f-event-time","f-duration","f-exception-dates","f-rescheduled-dates"]
-    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+  ["f-days-of-week","f-week-of-month","f-event-time","f-end-time","f-duration",
+   "f-exception-dates","f-rescheduled-dates"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = "";
+  });
+  ["exception-dates-err","rescheduled-dates-err"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = "";
+  });
   const detail = document.getElementById("recurrence-detail");
   if (detail) detail.style.display = "none";
 }
