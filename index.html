@@ -342,7 +342,7 @@ body{background:#f5f5f5;color:#1a1a1a}
     </div>
     <div id="form-body">
 
-      <!-- Verification strip (read-only, shown when editing) -->
+      <!-- Verification strip -->
       <div id="verify-strip" style="display:none">
         <div class="info-strip" style="grid-template-columns:1fr 1fr 1fr 1fr">
           <div class="info-item"><label>Last verified</label><span id="d-last-verified">--</span></div>
@@ -352,7 +352,7 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
       </div>
 
-      <!-- mirrors CAB: no section title for first section -->
+      <!-- IDENTITY -->
       <div class="form-section">
         <div class="frow full">
           <div class="field">
@@ -363,7 +363,7 @@ body{background:#f5f5f5;color:#1a1a1a}
         <div class="frow full">
           <div class="field">
             <label>Short description <span style="color:#ccc;font-size:11px">(required)</span></label>
-            <input type="text" id="f-devodesc" placeholder="Brief description of this activity">
+            <textarea id="f-devodesc" placeholder="Brief description of this activity" style="width:100%;min-height:70px;resize:vertical"></textarea>
           </div>
         </div>
         <div class="frow">
@@ -381,16 +381,18 @@ body{background:#f5f5f5;color:#1a1a1a}
             <label>Publish to Bulletin? <span style="color:#ccc;font-size:11px">(required)</span></label>
             <select id="f-publish-bulletin" onchange="updateVisibilityFromPublish()"><option value="">-- select --</option></select>
           </div>
-          <div class="field">
-            <label>Pause / end date</label>
-            <input type="date" id="f-pausedate">
-          </div>
         </div>
       </div>
 
-      <!-- mirrors CAB Activity section -->
+      <!-- ACTIVITY -->
       <div class="form-section">
         <div class="form-section-title">Activity</div>
+        <div class="frow full">
+          <div class="field">
+            <label>Devo Incl?</label>
+            <select id="f-devoinc"><option value="">-- select --</option></select>
+          </div>
+        </div>
         <div class="frow">
           <div class="field">
             <label>Activity Group</label>
@@ -407,18 +409,18 @@ body{background:#f5f5f5;color:#1a1a1a}
             <select id="f-recurrence-form" onchange="toggleRecurrenceDetail()"><option value="">-- select --</option></select>
           </div>
           <div class="field">
-            <label>Start date <span style="color:#ccc;font-size:11px">(required)</span></label>
-            <input type="date" id="f-startdate">
+            <label>Attendance Type <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <select id="f-virtual"><option value="">-- select --</option></select>
           </div>
         </div>
         <div class="frow">
           <div class="field">
-            <label>Attendance Type <span style="color:#ccc;font-size:11px">(required)</span></label>
-            <select id="f-virtual"><option value="">-- select --</option></select>
+            <label>Start date <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <input type="date" id="f-startdate">
           </div>
           <div class="field">
-            <label>Devo Incl?</label>
-            <select id="f-devoinc"><option value="">-- select --</option></select>
+            <label>End / Pause Date</label>
+            <input type="date" id="f-pausedate">
           </div>
         </div>
       </div>
@@ -502,7 +504,7 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
       </div>
 
-      <!-- mirrors CAB Location section -->
+      <!-- LOCATION -->
       <div class="form-section">
         <div class="form-section-title">Location</div>
         <div class="frow">
@@ -520,36 +522,31 @@ body{background:#f5f5f5;color:#1a1a1a}
             </select>
           </div>
         </div>
-        <div class="frow">
+        <div class="frow full">
           <div class="field">
             <label>Neighborhood <span style="color:#ccc;font-size:11px">(required)</span></label>
             <select id="f-neighborhood-form"><option value="">-- select borough first --</option></select>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="field">
+            <label>Street address</label>
+            <input type="text" id="f-street" placeholder="e.g. 123 Main St">
           </div>
           <div class="field">
             <label>Zip code</label>
             <input type="text" id="f-zip" placeholder="e.g. 11201" maxlength="5">
           </div>
         </div>
-        <div class="frow full">
-          <div class="field">
-            <label>Street address</label>
-            <input type="text" id="f-street" placeholder="e.g. 123 Main St">
-          </div>
-        </div>
       </div>
 
-      <!-- mirrors CAB Contact section -->
+      <!-- CONTACT -->
       <div class="form-section">
         <div class="form-section-title">Contact</div>
-        <div class="field">
-          <label>Hosts / facilitators <span style="font-size:11px;font-weight:400;color:#aaa">separate names with comma ","</span></label>
-          <div class="tag-input-container">
-            <div class="tag-input-wrap" id="hosts-wrap" onclick="focusTagInput('hosts-input')">
-              <div class="tags-list" id="hosts-tags"></div>
-              <input type="text" id="hosts-input" placeholder="Type to search..." autocomplete="off"
-                oninput="filterTagOptions('hosts')" onkeydown="tagKeydown(event,'hosts')">
-            </div>
-            <div class="tag-dropdown" id="hosts-dropdown" style="display:none"></div>
+        <div class="frow full">
+          <div class="field">
+            <label>Host(s) / Facilitator(s) / Contact Person(s)</label>
+            <input type="text" id="f-hosts-text" placeholder="Names, separate with comma">
           </div>
         </div>
         <div class="frow">
@@ -562,31 +559,22 @@ body{background:#f5f5f5;color:#1a1a1a}
             <input type="tel" id="f-phone" placeholder="+1 (212) 555-0000">
           </div>
         </div>
-        <div class="field">
-          <label>Accompanier(s)</label>
-          <div class="tag-input-container">
-            <div class="tag-input-wrap" id="acc-wrap" onclick="focusTagInput('acc-input')">
-              <div class="tags-list" id="acc-tags"></div>
-              <input type="text" id="acc-input" placeholder="Type to search..." autocomplete="off"
-                oninput="filterTagOptions('acc')" onkeydown="tagKeydown(event,'acc')">
-            </div>
-            <div class="tag-dropdown" id="acc-dropdown" style="display:none"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- mirrors CAB Additional section -->
-      <div class="form-section">
-        <div class="form-section-title">Additional</div>
         <div class="frow full">
           <div class="field">
-            <label>Misc. notes</label>
-            <textarea id="f-notes" placeholder="Any additional notes or context..."></textarea>
+            <label>Accompanier(s)</label>
+            <div class="tag-input-container">
+              <div class="tag-input-wrap" id="acc-wrap" onclick="focusTagInput('acc-input')">
+                <div class="tags-list" id="acc-tags"></div>
+                <input type="text" id="acc-input" placeholder="Type to search..." autocomplete="off"
+                  oninput="filterTagOptions('acc')" onkeydown="tagKeydown(event,'acc')">
+              </div>
+              <div class="tag-dropdown" id="acc-dropdown" style="display:none"></div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- AD-only: Participants -->
+      <!-- PARTICIPANTS (AD only) -->
       <div class="form-section">
         <div class="form-section-title">Participants</div>
         <div class="frow3">
@@ -611,7 +599,24 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
       </div>
 
-      <!-- AD-only: Actions -->
+      <!-- ADDITIONAL -->
+      <div class="form-section">
+        <div class="form-section-title">Additional</div>
+        <div class="frow full">
+          <div class="field">
+            <label>Link (URL)</label>
+            <input type="url" id="f-link" placeholder="https://...">
+          </div>
+        </div>
+        <div class="frow full">
+          <div class="field">
+            <label>Additional Notes</label>
+            <textarea id="f-notes" placeholder="Any additional notes or context..." style="width:100%;min-height:90px;resize:vertical"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIONS (AD only) -->
       <div class="form-section">
         <div class="form-section-title">Actions</div>
         <div class="frow">
@@ -1044,7 +1049,7 @@ function openForm(record){
   clearRecurrenceFields();
   ["f-street","f-zip","f-devodesc","f-typegroup","f-email","f-phone",
    "f-notes","f-action","f-bahais","f-fof","f-total","f-pausedate","f-publish-bulletin"].forEach(id=>setVal(id,""));
-  hostsSelected=[];accSelected=[];renderTags("hosts");renderTags("acc");
+  const ht=document.getElementById("f-hosts-text");if(ht)ht.value="";accSelected=[];renderTags("acc");
 
   const strip=document.getElementById("verify-strip");
   strip.style.display=record?"block":"none";
@@ -1094,12 +1099,13 @@ function openForm(record){
     setVal("f-fof",             record.numFof);
     setVal("f-total",           record.totalCount);
     setVal("f-hostsfof",        record.hostsInclFof);
-    setTagsFromString("hosts",  record.hosts);
+    const hostsTextEl = document.getElementById("f-hosts-text"); if(hostsTextEl) hostsTextEl.value = record.hosts||"";
     setVal("f-email",           record.contactEmail);
     setVal("f-phone",           record.contactPhone);
     setTagsFromString("acc",    record.accompaniers);
     setVal("f-notes",           record.miscNotes);
     setVal("f-actionneeded",    record.actionNeeded);
+    setVal("f-link",            record.link);
     setVal("f-action",          record.action);
   }
 
@@ -1148,6 +1154,7 @@ function getFormData(){
     miscNotes:       document.getElementById("f-notes").value,
     publishBulletin: document.getElementById("f-publish-bulletin")?.value||"",
     visibility:      (document.getElementById("f-visibility-form")?.textContent||"--").replace("--",""),
+    link:         document.getElementById("f-link")?.value.trim()||"",
     ...getRecurrenceData(),
     lastVerifiedBy: window._verifierName || "",
     skipVerification: !window._isVerifying
