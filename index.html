@@ -815,7 +815,7 @@ function applyFilters(){
     if(recVerify&& (r.verifyNeeded||"").toString().toLowerCase()!=="yes") return false;
     if(recAction&& (r.actionNeeded||"").toString().toLowerCase()!=="yes") return false;
     if(search){
-      const hay=[r.neighborhood,r.borough,r.hosts,r.activity,r.typeGroup,r.unit,r.devoDesc,r.accompaniers].join(" ").toLowerCase();
+      const hay=[r.neighborhood,r.borough,r.hosts,r.activity,r.typeGroup,r.unit,r.devoDesc,r.title,r.description,r.accompaniers,r.contactEmail,r.contactPhone,r.miscNotes,r.action,r.status,r.recurrence,r.streetAddress,r.zip].join(" ").toLowerCase();
       if(!hay.includes(search))return false;
     }
     return true;
