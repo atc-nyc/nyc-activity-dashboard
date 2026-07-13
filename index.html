@@ -80,6 +80,7 @@ body{background:#f5f5f5;color:#1a1a1a}
 .fsec{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px;padding-bottom:5px;border-bottom:1px solid #f0f0f0}
 .form-section{margin-bottom:16px}
 .fsec:first-child{margin-top:0}
+.form-section-title{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#3949AB;font-weight:700;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid #f0f0f0}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .field{margin-bottom:11px}
@@ -351,7 +352,7 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
       </div>
 
-      <!-- IDENTITY (mirrors CAB) -->
+      <!-- mirrors CAB: no section title for first section -->
       <div class="form-section">
         <div class="frow full">
           <div class="field">
@@ -387,9 +388,9 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
       </div>
 
-      <!-- ACTIVITY (mirrors CAB) -->
+      <!-- mirrors CAB Activity section -->
       <div class="form-section">
-        <div class="fsec">Activity</div>
+        <div class="form-section-title">Activity</div>
         <div class="frow">
           <div class="field">
             <label>Activity Group</label>
@@ -501,10 +502,14 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
       </div>
 
-      <!-- LOCATION (mirrors CAB) -->
+      <!-- mirrors CAB Location section -->
       <div class="form-section">
-        <div class="fsec">Location</div>
+        <div class="form-section-title">Location</div>
         <div class="frow">
+          <div class="field">
+            <label>Unit <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <select id="f-unit-form"><option value="">-- select --</option></select>
+          </div>
           <div class="field">
             <label>Borough <span style="color:#ccc;font-size:11px">(required)</span></label>
             <select id="f-borough-form" onchange="onBoroughChange()">
@@ -514,55 +519,28 @@ body{background:#f5f5f5;color:#1a1a1a}
               <option>Staten Island</option><option>NYC</option>
             </select>
           </div>
-          <div class="field">
-            <label>Unit <span style="color:#ccc;font-size:11px">(required)</span></label>
-            <select id="f-unit-form"><option value="">-- select --</option></select>
-          </div>
-        </div>
-        <div class="field">
-          <label>Neighborhood <span style="color:#ccc;font-size:11px">(required)</span></label>
-          <select id="f-neighborhood-form"><option value="">-- select borough first --</option></select>
         </div>
         <div class="frow">
           <div class="field">
-            <label>Street address</label>
-            <input type="text" id="f-street" placeholder="e.g. 123 Main St">
+            <label>Neighborhood <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <select id="f-neighborhood-form"><option value="">-- select borough first --</option></select>
           </div>
           <div class="field">
             <label>Zip code</label>
             <input type="text" id="f-zip" placeholder="e.g. 11201" maxlength="5">
           </div>
         </div>
-      </div>
-
-      <!-- PARTICIPANTS -->
-      <div class="form-section">
-        <div class="fsec">Participants</div>
-        <div class="frow3">
+        <div class="frow full">
           <div class="field">
-            <label>Approx. no. of Baha'is <span style="color:#ccc;font-size:11px">(required)</span></label>
-            <input type="number" id="f-bahais" min="0" oninput="updateTotal()">
-          </div>
-          <div class="field">
-            <label>Approx. no. of FoF <span style="color:#ccc;font-size:11px">(required)</span></label>
-            <input type="number" id="f-fof" min="0" oninput="updateTotal()">
-          </div>
-          <div class="field">
-            <label>Approx. total</label>
-            <input type="text" id="f-total" readonly placeholder="Auto-calculated">
-          </div>
-        </div>
-        <div class="frow">
-          <div class="field">
-            <label>Hosts include FoF? <span style="color:#ccc;font-size:11px">(required)</span></label>
-            <select id="f-hostsfof"><option value="">-- select --</option><option>Yes</option><option>No</option></select>
+            <label>Street address</label>
+            <input type="text" id="f-street" placeholder="e.g. 123 Main St">
           </div>
         </div>
       </div>
 
-      <!-- HOST & CONTACT (mirrors CAB) -->
+      <!-- mirrors CAB Contact section -->
       <div class="form-section">
-        <div class="fsec">Host &amp; contact</div>
+        <div class="form-section-title">Contact</div>
         <div class="field">
           <label>Hosts / facilitators <span style="font-size:11px;font-weight:400;color:#aaa">separate names with comma ","</span></label>
           <div class="tag-input-container">
@@ -597,13 +575,45 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
       </div>
 
-      <!-- NOTES & ACTIONS -->
+      <!-- mirrors CAB Additional section -->
       <div class="form-section">
-        <div class="fsec">Notes &amp; actions</div>
-        <div class="field">
-          <label>Misc. notes</label>
-          <textarea id="f-notes" placeholder="Any additional notes or context..."></textarea>
+        <div class="form-section-title">Additional</div>
+        <div class="frow full">
+          <div class="field">
+            <label>Misc. notes</label>
+            <textarea id="f-notes" placeholder="Any additional notes or context..."></textarea>
+          </div>
         </div>
+      </div>
+
+      <!-- AD-only: Participants -->
+      <div class="form-section">
+        <div class="form-section-title">Participants</div>
+        <div class="frow3">
+          <div class="field">
+            <label>Approx. no. of Baha'is <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <input type="number" id="f-bahais" min="0" oninput="updateTotal()">
+          </div>
+          <div class="field">
+            <label>Approx. no. of FoF <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <input type="number" id="f-fof" min="0" oninput="updateTotal()">
+          </div>
+          <div class="field">
+            <label>Approx. total</label>
+            <input type="text" id="f-total" readonly placeholder="Auto-calculated">
+          </div>
+        </div>
+        <div class="frow">
+          <div class="field">
+            <label>Hosts include FoF? <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <select id="f-hostsfof"><option value="">-- select --</option><option>Yes</option><option>No</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- AD-only: Actions -->
+      <div class="form-section">
+        <div class="form-section-title">Actions</div>
         <div class="frow">
           <div class="field">
             <label>Action needed? <span style="color:#ccc;font-size:11px">(required)</span></label>
