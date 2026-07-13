@@ -363,23 +363,23 @@ body{background:#f5f5f5;color:#1a1a1a}
         <div class="frow full">
           <div class="field">
             <label>Short description <span style="color:#ccc;font-size:11px">(required)</span></label>
-            <textarea id="f-devodesc" placeholder="Brief description of this activity" style="width:100%;min-height:70px;resize:vertical"></textarea>
-          </div>
-        </div>
-        <div class="frow">
-          <div class="field">
-            <label>Visibility</label>
-            <div id="f-visibility-form" style="padding:8px 12px;background:#f5f5f5;border-radius:6px;font-size:13px;color:#555;min-height:34px;border:1px solid #e0e0e0">--</div>
-          </div>
-          <div class="field">
-            <label>Status <span style="color:#ccc;font-size:11px">(required)</span></label>
-            <select id="f-status-form"><option value="">-- select --</option></select>
+            <textarea id="f-devodesc" placeholder="Brief description of this activity" style="width:100%;min-height:70px;resize:vertical;box-sizing:border-box"></textarea>
           </div>
         </div>
         <div class="frow">
           <div class="field">
             <label>Publish to Bulletin? <span style="color:#ccc;font-size:11px">(required)</span></label>
             <select id="f-publish-bulletin" onchange="updateVisibilityFromPublish()"><option value="">-- select --</option></select>
+          </div>
+          <div class="field">
+            <label>Visibility</label>
+            <div id="f-visibility-form" style="padding:8px 12px;background:#f5f5f5;border-radius:6px;font-size:13px;color:#555;min-height:34px;border:1px solid #e0e0e0">--</div>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="field">
+            <label>Status <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <select id="f-status-form"><option value="">-- select --</option></select>
           </div>
         </div>
       </div>
@@ -395,8 +395,8 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
         <div class="frow">
           <div class="field">
-            <label>Activity Group</label>
-            <input type="text" id="f-typegroup" readonly placeholder="Auto-filled" style="background:#f5f5f5">
+            <label>Activity Group <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <select id="f-typegroup-sel" onchange="onTypeGroupChange()"><option value="">-- select --</option></select>
           </div>
           <div class="field">
             <label>Activity <span style="color:#ccc;font-size:11px">(required)</span></label>
@@ -545,8 +545,8 @@ body{background:#f5f5f5;color:#1a1a1a}
         <div class="form-section-title">Contact</div>
         <div class="frow full">
           <div class="field">
-            <label>Host(s) / Facilitator(s) / Contact Person(s)</label>
-            <input type="text" id="f-hosts-text" placeholder="Names, separate with comma">
+            <label>Host(s) / Facilitator(s) / Contact Person(s) <span style="font-size:11px;font-weight:400;color:#aaa">separate names with comma ","</span></label>
+            <input type="text" id="f-hosts-text" placeholder="Names, separate with comma" style="width:100%;box-sizing:border-box">
           </div>
         </div>
         <div class="frow">
@@ -561,15 +561,8 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
         <div class="frow full">
           <div class="field">
-            <label>Accompanier(s)</label>
-            <div class="tag-input-container">
-              <div class="tag-input-wrap" id="acc-wrap" onclick="focusTagInput('acc-input')">
-                <div class="tags-list" id="acc-tags"></div>
-                <input type="text" id="acc-input" placeholder="Type to search..." autocomplete="off"
-                  oninput="filterTagOptions('acc')" onkeydown="tagKeydown(event,'acc')">
-              </div>
-              <div class="tag-dropdown" id="acc-dropdown" style="display:none"></div>
-            </div>
+            <label>Accompanier(s) <span style="font-size:11px;font-weight:400;color:#aaa">separate names with comma ","</span></label>
+            <input type="text" id="f-accompaniers-text" placeholder="Names, separate with comma" style="width:100%;box-sizing:border-box">
           </div>
         </div>
       </div>
@@ -583,7 +576,7 @@ body{background:#f5f5f5;color:#1a1a1a}
             <input type="number" id="f-bahais" min="0" oninput="updateTotal()">
           </div>
           <div class="field">
-            <label>Approx. no. of FoF <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Approx. no. of FoF</label>
             <input type="number" id="f-fof" min="0" oninput="updateTotal()">
           </div>
           <div class="field">
@@ -605,13 +598,13 @@ body{background:#f5f5f5;color:#1a1a1a}
         <div class="frow full">
           <div class="field">
             <label>Link (URL)</label>
-            <input type="url" id="f-link" placeholder="https://...">
+            <input type="url" id="f-link" placeholder="https://..." style="width:100%;box-sizing:border-box">
           </div>
         </div>
         <div class="frow full">
           <div class="field">
             <label>Additional Notes</label>
-            <textarea id="f-notes" placeholder="Any additional notes or context..." style="width:100%;min-height:90px;resize:vertical"></textarea>
+            <textarea id="f-notes" placeholder="Any additional notes or context..." style="width:100%;min-height:90px;resize:vertical;box-sizing:border-box"></textarea>
           </div>
         </div>
       </div>
@@ -854,6 +847,13 @@ function populateFormDropdowns(){
   populateSel("f-status-form",    dd.status||[]);
   populateSel("f-devoinc",        dd.yesNo||[]);
   populateSel("f-virtual",        dd.attendTypes||["In-Person Only","Virtual Only","Hybrid"]);
+  const tgSel = document.getElementById("f-typegroup-sel");
+  if (tgSel) {
+    const curVal = tgSel.value;
+    tgSel.innerHTML = '<option value="">-- select --</option>';
+    [...new Set(Object.values(dd.activityTypeMap||{}))].sort().forEach(g => tgSel.appendChild(new Option(g,g)));
+    if (curVal) tgSel.value = curVal;
+  }
   if (document.getElementById("f-publish-bulletin")) populateSel("f-publish-bulletin", dd.yesNo||["Yes","No"]);
   const actSel=document.getElementById("f-activity-form");
   while(actSel.options.length>1)actSel.remove(1);
@@ -918,6 +918,19 @@ function onBoroughChange(){
   const hoods = borough==="NYC" ? NYC_HOODS : (dropdowns.neighborhoods[borough]||[]);
   hoods.forEach(v=>{const o=document.createElement("option");o.value=o.text=v.toString().trim();sel.add(o);});
   if(prev)sel.value=prev;
+}
+
+function onTypeGroupChange(){
+  const grp = document.getElementById("f-typegroup-sel")?.value||"";
+  const actSel = document.getElementById("f-activity-form");
+  if (!actSel) return;
+  actSel.innerHTML = '<option value="">-- select --</option>';
+  if (!grp) return;
+  // Filter activities by type group using activityTypeMap
+  const map = dropdowns.activityTypeMap||{};
+  Object.entries(map).forEach(([act, type]) => {
+    if (type === grp) actSel.appendChild(new Option(act, act));
+  });
 }
 
 function onActivityChange(){
@@ -1049,7 +1062,8 @@ function openForm(record){
   clearRecurrenceFields();
   ["f-street","f-zip","f-devodesc","f-typegroup","f-email","f-phone",
    "f-notes","f-action","f-bahais","f-fof","f-total","f-pausedate","f-publish-bulletin"].forEach(id=>setVal(id,""));
-  const ht=document.getElementById("f-hosts-text");if(ht)ht.value="";accSelected=[];renderTags("acc");
+  const ht=document.getElementById("f-hosts-text");if(ht)ht.value="";
+  const at=document.getElementById("f-accompaniers-text");if(at)at.value="";
 
   const strip=document.getElementById("verify-strip");
   strip.style.display=record?"block":"none";
@@ -1084,7 +1098,7 @@ function openForm(record){
     setVal("f-zip",             record.zip);
     setVal("f-devodesc",        record.description);
     setVal("f-activity-form",   record.activity);
-    setVal("f-typegroup",       record.typeGroup);
+    setVal("f-typegroup-sel",   record.typeGroup); onTypeGroupChange();
     setVal("f-recurrence-form", record.recurrence);
     setVal("f-status-form",     record.status);
     setVal("f-startdate",       record.startDate);
@@ -1102,7 +1116,7 @@ function openForm(record){
     const hostsTextEl = document.getElementById("f-hosts-text"); if(hostsTextEl) hostsTextEl.value = record.hosts||"";
     setVal("f-email",           record.contactEmail);
     setVal("f-phone",           record.contactPhone);
-    setTagsFromString("acc",    record.accompaniers);
+    const accTxt=document.getElementById("f-accompaniers-text");if(accTxt)accTxt.value=record.accompaniers||"";
     setVal("f-notes",           record.miscNotes);
     setVal("f-actionneeded",    record.actionNeeded);
     setVal("f-link",            record.link);
@@ -1133,7 +1147,7 @@ function getFormData(){
     devoDesc:     "", // legacy -- Title now handles col K
     description:  document.getElementById("f-devodesc").value,
     activity:     document.getElementById("f-activity-form").value,
-    typeGroup:    document.getElementById("f-typegroup").value,
+    typeGroup: document.getElementById('f-typegroup-sel')?.value||'', //typeGroup_unused:    document.getElementById("f-typegroup").value,
     devoInc:      document.getElementById("f-devoinc").value,
     recurrence:   document.getElementById("f-recurrence-form").value,
     status:       document.getElementById("f-status-form").value,
@@ -1289,7 +1303,7 @@ async function saveRecord(){
           borough:       savedData.borough,
           neighborhood:  savedData.neighborhood,
           activity:      savedData.activity,
-          typeGroup:     savedData.typeGroup,
+          typeGroup: document.getElementById('f-typegroup-sel')?.value||'', //typeGroup_unused:     savedData.typeGroup,
           devoDesc:      savedData.devoDesc,
           devoInc:       savedData.devoInc,
           streetAddress: savedData.streetAddress,
