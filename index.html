@@ -1965,13 +1965,18 @@ function populateRecurrenceFields(record) {
     cb.checked = days.includes(cb.value);
   });
   updateDaysOfWeek();
-  const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
-  set("f-week-of-month",    record.weekOfMonth);
-  set("f-event-time",       record.eventTime);
-  set("f-end-time",         record.duration);
+  // Restore week of month checkboxes
+  const weeks = (record.weekOfMonth || "").split(",").map(w => w.trim()).filter(Boolean);
+  document.querySelectorAll("#week-of-month-picker input").forEach(cb => {
+    cb.checked = weeks.includes(cb.value);
+  });
+  updateWeekOfMonth();
+  const setField = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined && val !== null && val.toString().trim()) el.value = val; };
+  setField("f-event-time",       record.eventTime);
+  setField("f-end-time",         record.duration);
   calcDuration();
-  set("f-exception-dates",  record.exceptionDates);
-  set("f-rescheduled-dates",record.rescheduledDates);
+  setField("f-exception-dates",  record.exceptionDates);
+  setField("f-rescheduled-dates",record.rescheduledDates);
 }
 
 function getRecurrenceData() {
