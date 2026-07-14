@@ -1104,7 +1104,7 @@ function openForm(record){
     setVal("f-devodesc",        record.description);
     setVal("f-typegroup-sel",   record.typeGroup); onTypeGroupChange();
     setVal("f-activity-form",   record.activity);
-    setVal("f-recurrence-form", record.recurrence);
+    setVal("f-recurrence-form", record.recurrence); toggleRecurrenceDetail(); populateRecurrenceFields(record);
     setVal("f-status-form",     record.status);
     setVal("f-startdate",       record.startDate);
     setVal("f-devoinc",         record.devoInc);
