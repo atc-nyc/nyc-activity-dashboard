@@ -1171,7 +1171,8 @@ function getFormData(){
     visibility:      (document.getElementById("f-visibility-form")?.textContent||"--").replace("--",""),
     link:         document.getElementById("f-link")?.value.trim()||"",
     ...getRecurrenceData(),
-    lastVerifiedBy: window._verifierName || "",
+    lastVerifiedBy:  window._isVerifying ? (window._verifierName||"") : "",
+    lastSavedBy:     window._verifierName||"",
     skipVerification: !window._isVerifying
   };
 }
@@ -1236,11 +1237,12 @@ function promptVerifierName(callback) {
         </label>
       </div>
 
-      <div id="verifier-name-wrap" style="margin-bottom:6px;opacity:0.4;pointer-events:none;transition:opacity .2s">
-        <label style="display:block;font-size:12px;font-weight:500;color:#555;margin-bottom:4px">Verified by <span style="color:#e53935">*</span></label>
-        <input type="text" id="verifier-name-input" placeholder="Your name"
+      <div style="margin-bottom:6px">
+        <label style="display:block;font-size:12px;font-weight:500;color:#555;margin-bottom:4px">Verified / Saved by <span style="color:#e53935">*</span></label>
+        <input type="text" id="verifier-name-input" placeholder="First Last"
           style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"
           onkeydown="if(event.key==='Enter')document.getElementById('verifier-confirm-btn').click()">
+        <div style="font-size:11px;color:#aaa;margin-top:4px">First &amp; Last name required</div>
       </div>
       <div id="verifier-error" style="color:#c62828;font-size:12px;min-height:16px;margin-bottom:12px"></div>
 
@@ -1252,10 +1254,12 @@ function promptVerifierName(callback) {
           onclick="
             const isVerifying = document.getElementById('verify-checkbox').checked;
             const name = document.getElementById('verifier-name-input').value.trim();
-            if (isVerifying && !name) { document.getElementById('verifier-error').textContent = 'Please enter your name to mark as verified.'; return; }
+            const errEl = document.getElementById('verifier-error');
+            if (!name) { errEl.textContent='Please enter your name.'; return; }
+            if (!name.includes(' ') || name.split(' ').filter(Boolean).length < 2) { errEl.textContent='Please enter both first and last name.'; return; }
             document.body.removeChild(this.closest('[style*=fixed]'));
             window._isVerifying = isVerifying;
-            window._verifierName = isVerifying ? name : null;
+            window._verifierName = name;
             window._verifierCallback();
           ">Save</button>
       </div>
@@ -1263,10 +1267,10 @@ function promptVerifierName(callback) {
   window._verifierCallback = callback;
   document.body.appendChild(overlay);
 
-  // Enable/disable name field based on checkbox
+  // Focus name field on open
   setTimeout(() => {
     const cb = document.getElementById("verify-checkbox");
-    const wrap = document.getElementById("verifier-name-wrap");
+    const wrap = null;
     const input = document.getElementById("verifier-name-input");
     cb.addEventListener("change", () => {
       wrap.style.opacity = cb.checked ? "1" : "0.4";
