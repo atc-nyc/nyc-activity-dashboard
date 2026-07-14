@@ -1895,6 +1895,12 @@ function updateDaysOfWeek() {
   if (hidden) hidden.value = checked.join(", ");
 }
 
+function updateWeekOfMonth() {
+  const checked = [...document.querySelectorAll("#week-of-month-picker input:checked")].map(c => c.value);
+  const hidden = document.getElementById("f-week-of-month");
+  if (hidden) hidden.value = checked.join(", ");
+}
+
 function parseTime12(t) {
   if (!t) return null;
   const m = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
