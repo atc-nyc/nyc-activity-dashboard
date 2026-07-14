@@ -357,19 +357,19 @@ body{background:#f5f5f5;color:#1a1a1a}
       <div class="form-section">
         <div class="frow full">
           <div class="field">
-            <label>Title <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Title <span style="color:#e53935;font-size:11px">*</span></label>
             <input type="text" id="f-title-field" placeholder="e.g. Ashley's Meeting of the Minds">
           </div>
         </div>
         <div class="frow full">
           <div class="field">
-            <label>Short description <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Short description <span style="color:#e53935;font-size:11px">*</span></label>
             <textarea id="f-devodesc" placeholder="Brief description of this activity" style="width:100%;min-height:70px;resize:vertical;box-sizing:border-box"></textarea>
           </div>
         </div>
         <div class="frow">
           <div class="field">
-            <label>Publish to Bulletin? <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Publish to Bulletin? <span style="color:#e53935;font-size:11px">*</span></label>
             <select id="f-publish-bulletin" onchange="updateVisibilityFromPublish()"><option value="">-- select --</option></select>
           </div>
           <div class="field">
@@ -379,7 +379,7 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
         <div class="frow">
           <div class="field">
-            <label>Status <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Status <span style="color:#e53935;font-size:11px">*</span></label>
             <select id="f-status-form"><option value="">-- select --</option></select>
           </div>
         </div>
@@ -396,27 +396,27 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
         <div class="frow">
           <div class="field">
-            <label>Activity Group <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Activity Group <span style="color:#e53935;font-size:11px">*</span></label>
             <select id="f-typegroup-sel" onchange="onTypeGroupChange()"><option value="">-- select --</option></select>
           </div>
           <div class="field">
-            <label>Activity <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Activity <span style="color:#e53935;font-size:11px">*</span></label>
             <select id="f-activity-form" onchange="onActivityChange()"><option value="">-- select --</option></select>
           </div>
         </div>
         <div class="frow">
           <div class="field">
-            <label>Recurrence <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Recurrence <span style="color:#e53935;font-size:11px">*</span></label>
             <select id="f-recurrence-form" onchange="toggleRecurrenceDetail()"><option value="">-- select --</option></select>
           </div>
           <div class="field">
-            <label>Attendance Type <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Attendance Type <span style="color:#e53935;font-size:11px">*</span></label>
             <select id="f-virtual"><option value="">-- select --</option></select>
           </div>
         </div>
         <div class="frow">
           <div class="field">
-            <label>Start date <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Start date <span style="color:#e53935;font-size:11px">*</span></label>
             <input type="date" id="f-startdate">
           </div>
           <div class="field">
@@ -510,11 +510,11 @@ body{background:#f5f5f5;color:#1a1a1a}
         <div class="form-section-title">Location</div>
         <div class="frow">
           <div class="field">
-            <label>Unit <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Unit <span style="color:#e53935;font-size:11px">*</span></label>
             <select id="f-unit-form"><option value="">-- select --</option></select>
           </div>
           <div class="field">
-            <label>Borough <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Borough <span style="color:#e53935;font-size:11px">*</span></label>
             <select id="f-borough-form" onchange="onBoroughChange()">
               <option value="">-- select --</option>
               <option>Brooklyn</option><option>Bronx</option>
@@ -525,7 +525,7 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
         <div class="frow full">
           <div class="field">
-            <label>Neighborhood <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Neighborhood <span style="color:#e53935;font-size:11px">*</span></label>
             <select id="f-neighborhood-form"><option value="">-- select borough first --</option></select>
           </div>
         </div>
@@ -573,7 +573,7 @@ body{background:#f5f5f5;color:#1a1a1a}
         <div class="form-section-title">Participants</div>
         <div class="frow3">
           <div class="field">
-            <label>Approx. no. of Baha'is <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Approx. no. of Baha'is <span style="color:#e53935;font-size:11px">*</span></label>
             <input type="number" id="f-bahais" min="0" oninput="updateTotal()">
           </div>
           <div class="field">
@@ -587,7 +587,7 @@ body{background:#f5f5f5;color:#1a1a1a}
         </div>
         <div class="frow">
           <div class="field">
-            <label>Hosts include FoF? <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Hosts include FoF? <span style="color:#e53935;font-size:11px">*</span></label>
             <select id="f-hostsfof"><option value="">-- select --</option><option>Yes</option><option>No</option></select>
           </div>
         </div>
@@ -615,7 +615,7 @@ body{background:#f5f5f5;color:#1a1a1a}
         <div class="form-section-title">Actions</div>
         <div class="frow">
           <div class="field">
-            <label>Action needed? <span style="color:#ccc;font-size:11px">(required)</span></label>
+            <label>Action needed? <span style="color:#e53935;font-size:11px">*</span></label>
             <select id="f-actionneeded"><option value="">-- select --</option><option>Yes</option><option>No</option></select>
           </div>
           <div class="field">
@@ -1098,8 +1098,8 @@ function openForm(record){
     setVal("f-street",          record.streetAddress);
     setVal("f-zip",             record.zip);
     setVal("f-devodesc",        record.description);
-    setVal("f-activity-form",   record.activity);
     setVal("f-typegroup-sel",   record.typeGroup); onTypeGroupChange();
+    setVal("f-activity-form",   record.activity);
     setVal("f-recurrence-form", record.recurrence);
     setVal("f-status-form",     record.status);
     setVal("f-startdate",       record.startDate);
