@@ -445,10 +445,14 @@ body{background:#f5f5f5;color:#1a1a1a}
           </div>
           <div class="field">
             <label>Week of Month <span style="font-size:11px;font-weight:400;color:#aaa">(for monthly)</span></label>
-            <select id="f-week-of-month">
-              <option value="">-- select --</option>
-              <option>1st</option><option>2nd</option><option>3rd</option><option>4th</option><option>Last</option>
-            </select>
+            <div id="week-of-month-picker" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;cursor:pointer"><input type="checkbox" value="1st" onchange="updateWeekOfMonth()"> 1st</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;cursor:pointer"><input type="checkbox" value="2nd" onchange="updateWeekOfMonth()"> 2nd</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;cursor:pointer"><input type="checkbox" value="3rd" onchange="updateWeekOfMonth()"> 3rd</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;cursor:pointer"><input type="checkbox" value="4th" onchange="updateWeekOfMonth()"> 4th</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;cursor:pointer"><input type="checkbox" value="Last" onchange="updateWeekOfMonth()"> Last</label>
+            </div>
+            <input type="hidden" id="f-week-of-month">
           </div>
         </div>
         <div class="frow">
