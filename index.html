@@ -1173,6 +1173,7 @@ function getFormData(){
     ...getRecurrenceData(),
     lastVerifiedBy:  window._isVerifying ? (window._verifierName||"") : "",
     lastSavedBy:     window._verifierName||"",
+    lastSavedDate:   new Date().toLocaleDateString("en-US",{month:"2-digit",day:"2-digit",year:"numeric"}),
     skipVerification: !window._isVerifying
   };
 }
