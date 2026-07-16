@@ -1434,8 +1434,8 @@ function updateVisibilityFromPublish() {
   const pubEl = document.getElementById("f-publish-bulletin");
   const vis   = document.getElementById("f-visibility-form");
   if (!pubEl || !vis) return;
-  if (pubEl.value === "Yes")       { vis.textContent = "Public"; }
-  else if (pubEl.value === "No")   { vis.textContent = "Not-Public"; }
+  if (pubEl.value === "Yes")       { vis.textContent = "Community"; }
+  else if (pubEl.value === "No")   { vis.textContent = "Admin-Only"; }
   else                             { vis.textContent = "--"; }
 }
 
