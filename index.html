@@ -1672,8 +1672,9 @@ BY UNIT: ${Object.entries(s.byUnit||{}).map(([k,v])=>k+"="+v).join(" | ")}
 BY TYPE: ${Object.entries(s.byType||{}).map(([k,v])=>k+"="+v).join(" | ")}
 BY BOROUGH: ${Object.entries(s.byBorough||{}).map(([k,v])=>k+"="+v).join(" | ")}
 BY RECURRENCE: ${Object.entries(s.byRecurrence||{}).map(([k,v])=>k+"="+v).join(" | ")}
+ACTIVE THIS CYCLE: ${s.activeThisCycle||0} total | BY STATUS: ${Object.entries(s.activeThisCycleByStatus||{}).map(([k,v])=>k+"="+v).join(" | ")}
 TOP HOSTS: ${(s.topHosts||[]).map(h=>h.name+":"+h.count).join(" | ")}
-ALL RECORDS (Name|Borough|Unit|Type|Status|Hosts|Total|Verify|Action|Devo|StartDate):
+ALL RECORDS (Name|Borough|Unit|Type|Status|Hosts|Total|Verify|Action|Devo|StartDate|ActiveThisCycle):
 ${(s.allRecordsList||[]).join("\n")}
 NEEDS ATTENTION: ${JSON.stringify(s.needsAttention||[])}
 `;
@@ -1687,7 +1688,17 @@ QUERY INSTRUCTIONS:
 - For list queries: return all matching records, not a sample.
 - A record named "Friday Youth Night" with [TYPE:Devotional - Community] IS a devotional. The name is irrelevant to type classification.
 - Always use exact figures from the COUNTS block. Never recalculate.
-- Be concise, specific, and exhaustive.`;
+- Be concise, specific, and exhaustive.
+- IMPORTANT: When a user asks for counts, groupings, or lists that require filtering records by any field combination (e.g. "active this cycle by unit", "active activities in Brooklyn", "how many paused activities need verification"), you MUST use the query tool instead of scanning the record list yourself. Output EXACTLY this format on its own line with no other text before or after the tag:
+<query>{"sheetName":"CYCLE_NAME","filter":{"field":"value"},"groupBy":"field"}</query>
+Replace CYCLE_NAME with the actual sheet name (e.g. "NYC Activity Dashboard - C83").
+Use "filter" to specify field=value pairs. Use "groupBy" to group results. Omit "groupBy" if not needed.
+Available filter fields: status, unit, borough, neighborhood, typeGroup, activity, recurrence, verifyNeeded, actionNeeded, devoIncl, activeThisCycle, hosts.
+Examples:
+- "active this cycle by unit": <query>{"sheetName":"NYC Activity Dashboard - C83","filter":{"activeThisCycle":"Yes"},"groupBy":"unit"}</query>
+- "paused activities in Brooklyn": <query>{"sheetName":"NYC Activity Dashboard - C83","filter":{"status":"Paused","borough":"Brooklyn"}}</query>
+- "how many need verification": <query>{"sheetName":"NYC Activity Dashboard - C83","filter":{"verifyNeeded":"Yes"}}</query>
+After receiving query results, summarize them clearly for the user.`;
 
   return prompt;
 }
@@ -1748,9 +1759,48 @@ async function sendAiMessage() {
     const json = await res.json();
     removeTyping();
     if (json.error) throw new Error(json.error);
-    const reply = json.reply;
+    let reply = json.reply;
+    // Check for query tag and execute if present
+    const queryMatch = reply.match(/<query>([\s\S]*?)<\/query>/);
+    if (queryMatch) {
+      try {
+        const querySpec = JSON.parse(queryMatch[1]);
+        statusEl.textContent = "Running query...";
+        // Execute query against Apps Script
+        const qRes = await fetch(API, {
+          method: "POST",
+          body: JSON.stringify({ action: "runQuery", ...querySpec })
+        });
+        const qJson = await qRes.json();
+        if (qJson.error) throw new Error(qJson.error);
+        // Format result and inject back into conversation
+        let resultText = `Query result: ${qJson.total} records found`;
+        if (qJson.groups) {
+          resultText += "\nGrouped by " + querySpec.groupBy + ":\n";
+          resultText += Object.entries(qJson.groups)
+            .sort((a,b) => b[1]-a[1])
+            .map(([k,v]) => `  ${k}: ${v}`)
+            .join("\n");
+        }
+        // Add query result to conversation so AiTC can summarize
+        aiConversation.push({ role: "assistant", content: reply });
+        aiConversation.push({ role: "user", content: `[QUERY RESULT]\n${resultText}\n[END QUERY RESULT]\nPlease summarize this for the user.` });
+        // Get AiTC's summary
+        const sumRes = await fetch(API, {
+          method: "POST",
+          body: JSON.stringify({ action: "askAI", messages: aiConversation, systemPrompt: buildDataSummary() })
+        });
+        const sumJson = await sumRes.json();
+        reply = sumJson.reply || reply.replace(/<query>[\s\S]*?<\/query>/, resultText);
+        aiConversation.push({ role: "assistant", content: reply });
+      } catch(qErr) {
+        reply = reply.replace(/<query>[\s\S]*?<\/query>/, `[Query failed: ${qErr.message}]`);
+        aiConversation.push({ role: "assistant", content: reply });
+      }
+    } else {
+      aiConversation.push({ role: "assistant", content: reply });
+    }
     appendAiMessage("claude", reply);
-    aiConversation.push({ role: "assistant", content: reply });
     statusEl.textContent = "";
   } catch(e) {
     removeTyping();
