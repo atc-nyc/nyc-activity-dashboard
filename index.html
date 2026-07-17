@@ -853,7 +853,7 @@ function renderMarkers(records){
     const latlng=getLatLng(r),color=typeColor(r.typeGroup),label=typeLabel(r.typeGroup);
     const icon=L.divIcon({html:`<div style="background:${color};color:#fff;width:26px;height:26px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.3)">${label}</div>`,className:"",iconSize:[26,26],iconAnchor:[13,13]});
     const marker=L.marker(latlng,{icon});
-    marker.bindTooltip(`<div style="font-size:12px"><b style="display:block;margin-bottom:3px">${r.neighborhood||r.borough||"--"}</b>${r.activity||"--"}<br><span style="color:#888">${r.devoDesc||""}</span><br><span style="color:#888">${r.unit||""}</span></div>`,{sticky:true});
+    marker.bindTooltip(`<div style="font-size:12px"><b style="display:block;margin-bottom:2px">${r.title||r.devoDesc||"--"}</b>${r.activity||"--"}<br><span style="color:#888">${r.neighborhood||r.borough||""}</span><br><span style="color:#888">${r.unit||""}</span></div>`,{sticky:true});
     marker.on("click",()=>{selectRecord(r.rowIndex);openForm(r);map.setView(latlng,14,{animate:true});});
     markersLayer.addLayer(marker);
   });
