@@ -1693,7 +1693,9 @@ QUERY INSTRUCTIONS:
 <query>{"sheetName":"CYCLE_NAME","filter":{"field":"value"},"groupBy":"field"}</query>
 Replace CYCLE_NAME with the actual sheet name (e.g. "NYC Activity Dashboard - C83").
 Use "filter" to specify field=value pairs. Use "groupBy" to group results. Omit "groupBy" if not needed.
-Available filter fields: status, unit, borough, neighborhood, typeGroup, activity, recurrence, verifyNeeded, actionNeeded, devoIncl, activeThisCycle, hosts.
+Available filter fields: status, unit, borough, neighborhood, typeGroup, activity, recurrence, verifyNeeded, actionNeeded, devoIncl, activeThisCycle, hosts, startDate, endDate, lastVerified, lastVerifiedBy, lastSavedBy, lastSavedDate, daysVerify, visibility, dataSource, publishBulletin, attendType, accompaniers, contactEmail, contactPhone, streetAddress, zip, link, miscNotes, title, description, hostsInclFof, numBahais, numFof, totalCount.
+For numeric/date range filters use object syntax: {"daysVerify":{"gt":30}} or {"startDate":{"after":"2024-01-01","before":"2025-01-01"}}.
+Supported range operators: gt (>), gte (>=), lt (<), lte (<=), after, before.
 Examples:
 - "active this cycle by unit": <query>{"sheetName":"NYC Activity Dashboard - C83","filter":{"activeThisCycle":"Yes"},"groupBy":"unit"}</query>
 - "paused activities in Brooklyn": <query>{"sheetName":"NYC Activity Dashboard - C83","filter":{"status":"Paused","borough":"Brooklyn"}}</query>
