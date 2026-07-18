@@ -729,6 +729,32 @@ let currentRowIndex=null;
 let hostsSelected=[], accSelected=[];
 let _savedFilterState=null;
 
+function saveFilterState() {
+  _savedFilterState = {
+    unit:     document.getElementById("rf-unit")?.value||"",
+    type:     document.getElementById("rf-type")?.value||"",
+    activity: document.getElementById("rf-activity")?.value||"",
+    status:   document.getElementById("rf-status-filter")?.value||"",
+    verify:   document.getElementById("rf-verify")?.checked||false,
+    action:   document.getElementById("rf-action")?.checked||false,
+    search:   document.getElementById("search-input")?.value||"",
+  };
+}
+
+function restoreFilterState(state) {
+  if (!state) return;
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val; };
+  set("rf-unit",          state.unit);
+  set("rf-type",          state.type);
+  set("rf-status-filter", state.status);
+  set("rf-activity",      state.activity);
+  set("search-input",     state.search);
+  const verify = document.getElementById("rf-verify");
+  if (verify) verify.checked = state.verify;
+  const action = document.getElementById("rf-action");
+  if (action) action.checked = state.action;
+}
+
 
 // ── TAG INPUT ─────────────────────────────────────────────────────────────────
 function focusTagInput(id){ document.getElementById(id).focus(); }
@@ -1408,7 +1434,7 @@ async function saveRecord(){
     applyFilters();
 
     // Then do a background reload to fully sync with sheet
-    loadData();
+    saveFilterState(); loadData();
     }catch(e){statusEl.textContent="Error: "+e.message;statusEl.style.color="#c62828";}
   });
 }
@@ -1437,7 +1463,7 @@ async function doDelete(deletedBy,deletionReason){
     const res=await fetch(API,{method:"POST",body:JSON.stringify({action:"deleteRecord",app:APP_ID,rowIndex:currentRowIndex,sheet:currentSheetName,deletedBy,deletionReason})});
     const json=await res.json();if(json.error)throw new Error(json.error);
     allRecords=allRecords.filter(r=>r.rowIndex!==currentRowIndex);
-    closeForm();applyFilters();loadData();
+    saveFilterState();closeForm();applyFilters();loadData();
   }catch(e){statusEl.textContent="Error: "+e.message;statusEl.style.color="#c62828";}
 }
 
