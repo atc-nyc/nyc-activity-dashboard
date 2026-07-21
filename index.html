@@ -1765,13 +1765,28 @@ async function handleSession(session) {
   }
 
   currentUserProfile = profile;
+  if (dashboardLoaded) return;
+  dashboardLoaded = true;
   document.getElementById("auth-overlay").style.display = "none";
   initMap();
   await fetchActiveCycle();
   loadData();
 }
 
+let dashboardLoaded = false; // guards against handleSession running its success path twice
+
 window.addEventListener("load", async () => {
+  // Catches: OAuth redirect completing, a restored session from a previous
+  // visit, or an already-active session. onAuthStateChange fires for all of
+  // these (including a brief moment after Google sign-in redirects back,
+  // which a one-time getSession() check on load can miss).
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (session) {
+      handleSession(session);
+    }
+  });
+
+  // Also check immediately in case a session is already available synchronously
   const { data } = await supabaseClient.auth.getSession();
   if (data && data.session) {
     await handleSession(data.session);
