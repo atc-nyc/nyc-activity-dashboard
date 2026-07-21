@@ -12,6 +12,7 @@
 <title>NYC Activity Dashboard</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMzOTQ5QUIiLz4KICA8cGF0aCBkPSJNMTYgNkMxMi4xMyA2IDkgOS4xMyA5IDEzYzAgNS4yNSA3IDEzIDcgMTNzNy03Ljc1IDctMTNjMC0zLjg3LTMuMTMtNy03LTd6bTAgOS41Yy0xLjM4IDAtMi41LTEuMTItMi41LTIuNXMxLjEyLTIuNSAyLjUtMi41IDIuNSAxLjEyIDIuNSAyLjUtMS4xMiAyLjUtMi41IDIuNXoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPg==">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -169,18 +170,48 @@ input[list]::-webkit-calendar-picker-indicator{opacity:0.6;cursor:pointer}
 <body>
 
 <div id="auth-overlay" style="position:fixed;inset:0;background:#3949AB;z-index:99999;display:flex;align-items:center;justify-content:center">
-  <div style="background:#fff;border-radius:14px;padding:36px 32px;width:340px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+  <div style="background:#fff;border-radius:14px;padding:36px 32px;width:360px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2)">
     <div style="font-size:28px;margin-bottom:8px">&#x1F5FA;</div>
     <h2 style="font-size:17px;font-weight:600;color:#1a1a1a;margin-bottom:6px">NYC Activity Dashboard</h2>
-    <p style="font-size:13px;color:#888;margin-bottom:20px">Enter the passphrase to continue</p>
-    <input type="password" id="auth-input" placeholder="Passphrase"
-      style="width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;margin-bottom:8px;outline:none"
-      onkeydown="if(event.key==='Enter')checkAuth()">
-    <div id="auth-error" style="color:#c62828;font-size:12px;min-height:18px;margin-bottom:8px"></div>
-    <button onclick="checkAuth()"
-      style="width:100%;background:#3949AB;color:#fff;border:none;padding:10px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">
-      Enter
+    <p id="auth-subtitle" style="font-size:13px;color:#888;margin-bottom:20px">Sign in to continue</p>
+
+    <div style="display:flex;margin-bottom:16px;border-bottom:1px solid #eee">
+      <button id="auth-tab-signin" onclick="setAuthMode('signin')"
+        style="flex:1;padding:8px;background:none;border:none;border-bottom:2px solid #3949AB;color:#3949AB;font-weight:600;font-size:13px;cursor:pointer">Sign In</button>
+      <button id="auth-tab-signup" onclick="setAuthMode('signup')"
+        style="flex:1;padding:8px;background:none;border:none;border-bottom:2px solid transparent;color:#888;font-weight:600;font-size:13px;cursor:pointer">Sign Up</button>
+    </div>
+
+    <input type="email" id="auth-email" placeholder="Email" autocomplete="username"
+      style="width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;margin-bottom:8px;outline:none;box-sizing:border-box">
+    <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password"
+      style="width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;margin-bottom:8px;outline:none;box-sizing:border-box"
+      onkeydown="if(event.key==='Enter')submitAuth()">
+
+    <div id="auth-error" style="color:#c62828;font-size:12px;min-height:18px;margin-bottom:4px"></div>
+    <div id="auth-info" style="color:#2e7d32;font-size:12px;min-height:18px;margin-bottom:4px"></div>
+
+    <button id="auth-submit-btn" onclick="submitAuth()"
+      style="width:100%;background:#3949AB;color:#fff;border:none;padding:10px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:12px">
+      Sign In
     </button>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <div style="flex:1;height:1px;background:#eee"></div>
+      <span style="font-size:11px;color:#aaa">OR</span>
+      <div style="flex:1;height:1px;background:#eee"></div>
+    </div>
+
+    <button onclick="signInWithGoogle()"
+      style="width:100%;background:#fff;color:#333;border:1px solid #e0e0e0;padding:10px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35 24 35c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.5 4.5 29.6 2.5 24 2.5 11.8 2.5 2 12.3 2 24.5S11.8 46.5 24 46.5 46 36.7 46 24.5c0-1.4-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.7 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.5 6.5 29.6 4.5 24 4.5c-7.8 0-14.5 4.4-17.7 10.2z"/><path fill="#4CAF50" d="M24 46.5c5.5 0 10.4-1.9 14.1-5.1l-6.5-5.5c-2 1.5-4.6 2.4-7.6 2.4-5.3 0-9.7-2.6-11.4-6.9l-6.6 5.1C9.4 42 16.1 46.5 24 46.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.8l6.5 5.5c-.5.4 6.9-5 6.9-15.3 0-1.4-.1-2.7-.4-4z"/></svg>
+      Continue with Google
+    </button>
+
+    <p style="font-size:11px;color:#aaa;margin-top:16px">
+      New accounts are reviewed by the ATC before access is granted.<br>
+      Questions? <a href="mailto:atc@bahainyc.org?subject=ATC%20Dashboard%20Access%20Request" style="color:#3949AB">Contact the ATC</a>
+    </p>
   </div>
 </div>
 
@@ -1623,36 +1654,129 @@ async function fetchActiveCycle() {
   } catch(e) {}
 }
 
-// Passphrase: change this to whatever word or phrase you want
-const PASSPHRASE = "unity";
+// ── SUPABASE AUTH (replaces old passphrase gate) ──────────────────────────────
 const APP_ID = "ad"; // Activity Dashboard
 
-async function checkAuth() {
-  const input = document.getElementById("auth-input").value.trim();
-  const error = document.getElementById("auth-error");
-  if (input === PASSPHRASE) {
-    localStorage.setItem("auth", PASSPHRASE);
-    document.getElementById("auth-overlay").style.display = "none";
-    initMap();
-    await fetchActiveCycle();
-    loadData();
-  } else {
-    error.textContent = "Incorrect passphrase. Please try again.";
-    document.getElementById("auth-input").value = "";
-    document.getElementById("auth-input").focus();
+const SUPABASE_URL      = "https://ywgepllihpndwecvfwuh.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_zlD2IThJmyG6gTvl96iegQ_PIsnA8tV";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let authMode = "signin";
+let currentAuthToken = null;    // Supabase access token -- not sent to Apps Script yet,
+                                 // reserved for when ownership enforcement is wired in
+let currentUserProfile = null;  // { id, email, display_name, role, status }
+
+function setAuthMode(mode) {
+  authMode = mode;
+  const signinTab = document.getElementById("auth-tab-signin");
+  const signupTab = document.getElementById("auth-tab-signup");
+  signinTab.style.borderBottomColor = mode === "signin" ? "#3949AB" : "transparent";
+  signinTab.style.color             = mode === "signin" ? "#3949AB" : "#888";
+  signupTab.style.borderBottomColor = mode === "signup" ? "#3949AB" : "transparent";
+  signupTab.style.color             = mode === "signup" ? "#3949AB" : "#888";
+  document.getElementById("auth-submit-btn").textContent = mode === "signin" ? "Sign In" : "Sign Up";
+  document.getElementById("auth-error").textContent = "";
+  document.getElementById("auth-info").textContent = "";
+}
+
+async function submitAuth() {
+  const email    = document.getElementById("auth-email").value.trim();
+  const password = document.getElementById("auth-password").value;
+  const error    = document.getElementById("auth-error");
+  const info     = document.getElementById("auth-info");
+  error.textContent = "";
+  info.textContent  = "";
+
+  if (!email || !password) {
+    error.textContent = "Please enter both email and password.";
+    return;
+  }
+
+  const btn = document.getElementById("auth-submit-btn");
+  btn.disabled = true;
+  btn.textContent = "Please wait...";
+
+  try {
+    let result;
+    if (authMode === "signin") {
+      result = await supabaseClient.auth.signInWithPassword({ email, password });
+    } else {
+      result = await supabaseClient.auth.signUp({ email, password });
+    }
+    if (result.error) {
+      error.textContent = result.error.message;
+      return;
+    }
+    if (authMode === "signup") {
+      info.textContent = "Account created. Your access is pending ATC review unless your email was pre-approved.";
+      setAuthMode("signin");
+      return;
+    }
+    await handleSession(result.data.session);
+  } catch (e) {
+    error.textContent = "Something went wrong: " + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = authMode === "signin" ? "Sign In" : "Sign Up";
   }
 }
 
-// Focus passphrase input on load
+async function signInWithGoogle() {
+  await supabaseClient.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: window.location.href }
+  });
+}
+
+async function handleSession(session) {
+  if (!session) return;
+  currentAuthToken = session.access_token;
+
+  const { data: profileRows, error: profileError } = await supabaseClient
+    .from("users")
+    .select("id,email,display_name,role,status")
+    .eq("id", session.user.id)
+    .limit(1);
+
+  const error = document.getElementById("auth-error");
+
+  if (profileError || !profileRows || profileRows.length === 0) {
+    error.textContent = "Could not find your profile. Contact the ATC for help.";
+    await supabaseClient.auth.signOut();
+    return;
+  }
+
+  const profile = profileRows[0];
+
+  if (profile.status === "suspended") {
+    error.textContent = "Your account has been suspended. Contact the ATC for help.";
+    await supabaseClient.auth.signOut();
+    return;
+  }
+  if (profile.status === "pending") {
+    error.textContent = "Your account is pending approval. You'll get access once an admin approves it.";
+    await supabaseClient.auth.signOut();
+    return;
+  }
+  if (profile.role !== "admin" && profile.role !== "ad_user") {
+    error.textContent = "Your account doesn't have access to the Activity Dashboard.";
+    await supabaseClient.auth.signOut();
+    return;
+  }
+
+  currentUserProfile = profile;
+  document.getElementById("auth-overlay").style.display = "none";
+  initMap();
+  await fetchActiveCycle();
+  loadData();
+}
+
 window.addEventListener("load", async () => {
-  if (localStorage.getItem("auth") === PASSPHRASE) {
-    localStorage.setItem("auth", PASSPHRASE);
-    document.getElementById("auth-overlay").style.display = "none";
-    initMap();
-    await fetchActiveCycle();
-    loadData();
+  const { data } = await supabaseClient.auth.getSession();
+  if (data && data.session) {
+    await handleSession(data.session);
   } else {
-    document.getElementById("auth-input").focus();
+    document.getElementById("auth-email").focus();
   }
 });
 
