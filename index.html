@@ -1759,8 +1759,11 @@ async function handleSession(session) {
     return;
   }
   if (profile.role !== "admin" && profile.role !== "ad_user") {
-    error.textContent = "Your account doesn't have access to the Activity Dashboard.";
-    await supabaseClient.auth.signOut();
+    // Deliberately NOT calling signOut() here -- this is an AD-specific access
+    // rule (members are CAB-only), not an account-wide problem. Signing them
+    // out globally would also kill a perfectly valid CAB session, since both
+    // apps share the same Supabase session via localStorage on this domain.
+    error.textContent = "Your account doesn't have access to the Activity Dashboard. If you're looking for the community bulletin, visit the Community Activity Bulletin instead.";
     return;
   }
 
