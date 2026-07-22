@@ -1615,29 +1615,74 @@ function renderAdminUsersList(data) {
   }
   el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
     <thead><tr style="text-align:left;color:#888;font-size:11px;text-transform:uppercase">
-      <th style="padding:6px 8px 6px 0">Name</th><th>Email</th><th>Role</th><th>Status</th>
+      <th style="padding:6px 8px 6px 0">Name</th><th>Email</th><th>Role</th><th>Status</th><th></th>
     </tr></thead>
     <tbody>
     ${data.map(u => `
-      <tr style="border-top:1px solid #f0f0f0">
+      <tr style="border-top:1px solid #f0f0f0" data-row-user-id="${u.id}">
         <td style="padding:8px 8px 8px 0;cursor:pointer;font-weight:600;color:#1a1a1a" onclick="showUserActivities('${u.id}','${(u.display_name||u.email).replace(/'/g,"&#39;")}')">${u.display_name || "--"}</td>
         <td style="color:#888;padding:8px 8px 8px 0;cursor:pointer" onclick="showUserActivities('${u.id}','${(u.display_name||u.email).replace(/'/g,"&#39;")}')">${u.email}</td>
         <td style="padding:8px 8px 8px 0">
-          <select onchange="changeUserRole('${u.id}', this.value)" style="padding:4px 6px;border:1px solid #e0e0e0;border-radius:5px;font-size:12px">
+          <select id="role-${u.id}" onchange="markRowDirty('${u.id}')" style="padding:4px 6px;border:1px solid #e0e0e0;border-radius:5px;font-size:12px">
             <option value="member" ${u.role==='member'?'selected':''}>Member</option>
             <option value="ad_user" ${u.role==='ad_user'?'selected':''}>AD User</option>
             <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
           </select>
         </td>
-        <td style="padding:8px 0">
-          <select onchange="changeUserStatus('${u.id}', this.value)" style="padding:4px 6px;border:1px solid #e0e0e0;border-radius:5px;font-size:12px">
+        <td style="padding:8px 8px 8px 0">
+          <select id="status-${u.id}" onchange="markRowDirty('${u.id}')" style="padding:4px 6px;border:1px solid #e0e0e0;border-radius:5px;font-size:12px">
             <option value="active" ${u.status==='active'?'selected':''}>Active</option>
             <option value="suspended" ${u.status==='suspended'?'selected':''}>Suspended</option>
           </select>
         </td>
+        <td style="padding:8px 0;white-space:nowrap">
+          <button id="save-btn-${u.id}" onclick="saveUserRow('${u.id}')" disabled
+            style="padding:4px 10px;border:1px solid #e0e0e0;border-radius:5px;font-size:12px;background:#f5f5f5;color:#aaa;cursor:not-allowed">Save</button>
+          <span id="save-status-${u.id}" style="font-size:11px;margin-left:6px"></span>
+        </td>
       </tr>`).join("")}
     </tbody>
   </table>`;
+}
+
+function markRowDirty(id) {
+  const btn = document.getElementById(`save-btn-${id}`);
+  btn.disabled = false;
+  btn.style.background = "#3949AB";
+  btn.style.color = "#fff";
+  btn.style.cursor = "pointer";
+  document.getElementById(`save-status-${id}`).textContent = "";
+}
+
+async function saveUserRow(id) {
+  const role   = document.getElementById(`role-${id}`).value;
+  const status = document.getElementById(`status-${id}`).value;
+  const btn    = document.getElementById(`save-btn-${id}`);
+  const statusEl = document.getElementById(`save-status-${id}`);
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+  statusEl.textContent = "";
+
+  const { error } = await supabaseClient.from("users").update({ role, status }).eq("id", id);
+
+  if (error) {
+    btn.textContent = "Save";
+    btn.disabled = false;
+    statusEl.textContent = "Error";
+    statusEl.style.color = "#c62828";
+    return;
+  }
+
+  btn.textContent = "Save";
+  btn.style.background = "#f5f5f5";
+  btn.style.color = "#aaa";
+  btn.style.cursor = "not-allowed";
+  statusEl.textContent = "Saved \u2713";
+  statusEl.style.color = "#2e7d32";
+  // Update the cache so search filtering stays in sync without a full reload
+  const cached = adminAllUsersCache.find(u => u.id === id);
+  if (cached) { cached.role = role; cached.status = status; }
+  setTimeout(() => { if (statusEl) statusEl.textContent = ""; }, 3000);
 }
 
 let adminSidebarOwnedRecords = [];
@@ -1671,16 +1716,6 @@ async function showUserActivities(userId, name) {
       <div style="font-weight:600;color:#1a1a1a;font-size:13px">${r.title || r.description || "Untitled"}</div>
       <div style="font-size:11px;color:#888;margin-top:2px">${r.unit||""} &bull; ${r.status||""}</div>
     </div>`).join("");
-}
-
-async function changeUserRole(id, role) {
-  const { error } = await supabaseClient.from("users").update({ role }).eq("id", id);
-  if (error) alert("Error changing role: " + error.message);
-}
-
-async function changeUserStatus(id, status) {
-  const { error } = await supabaseClient.from("users").update({ status }).eq("id", id);
-  if (error) alert("Error changing status: " + error.message);
 }
 
 async function preApproveEmail() {
