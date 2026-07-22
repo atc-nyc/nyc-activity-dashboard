@@ -1221,7 +1221,7 @@ function openForm(record){
           if (data && data.length > 0) {
             ownedByEl.textContent = data.map(r => r.display_name).join(", ");
           } else {
-            ownedByEl.textContent = "Unclaimed";
+            ownedByEl.textContent = "--";
           }
         })
         .catch(() => { ownedByEl.textContent = "--"; });
