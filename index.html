@@ -328,7 +328,14 @@ input[list]::-webkit-calendar-picker-indicator{opacity:0.6;cursor:pointer}
 
       <div style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:20px">
         <h3 style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:12px">All Users</h3>
-        <div id="admin-users-list" style="font-size:13px;color:#888">Loading...</div>
+        <input type="text" id="admin-users-search" placeholder="Search by name or email..." oninput="filterAdminUsers()"
+          style="width:100%;padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;margin-bottom:14px;outline:none;box-sizing:border-box">
+        <div style="display:flex;gap:20px;align-items:flex-start">
+          <div id="admin-users-list" style="font-size:13px;color:#888;flex:2;min-width:0">Loading...</div>
+          <div id="admin-user-detail" style="font-size:13px;flex:1;min-width:220px;border-left:1px solid #f0f0f0;padding-left:20px;position:sticky;top:0">
+            <div style="color:#aaa">Click a user to see the activities they own.</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1569,6 +1576,8 @@ async function declineUser(id) {
   loadAdminData();
 }
 
+let adminAllUsersCache = [];
+
 async function loadAllUsers() {
   const el = document.getElementById("admin-users-list");
   el.textContent = "Loading...";
@@ -1578,8 +1587,23 @@ async function loadAllUsers() {
     .neq("status", "pending")
     .order("email");
   if (error) { el.textContent = "Couldn't load users."; return; }
+  adminAllUsersCache = data || [];
+  renderAdminUsersList(adminAllUsersCache);
+}
+
+function filterAdminUsers() {
+  const q = document.getElementById("admin-users-search").value.trim().toLowerCase();
+  if (!q) { renderAdminUsersList(adminAllUsersCache); return; }
+  const filtered = adminAllUsersCache.filter(u =>
+    (u.display_name||"").toLowerCase().includes(q) || (u.email||"").toLowerCase().includes(q)
+  );
+  renderAdminUsersList(filtered);
+}
+
+function renderAdminUsersList(data) {
+  const el = document.getElementById("admin-users-list");
   if (!data || data.length === 0) {
-    el.innerHTML = "<div style='color:#aaa'>No users yet.</div>";
+    el.innerHTML = "<div style='color:#aaa'>No matching users.</div>";
     return;
   }
   el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
@@ -1589,8 +1613,8 @@ async function loadAllUsers() {
     <tbody>
     ${data.map(u => `
       <tr style="border-top:1px solid #f0f0f0">
-        <td style="padding:8px 8px 8px 0">${u.display_name || "--"}</td>
-        <td style="color:#888;padding:8px 8px 8px 0">${u.email}</td>
+        <td style="padding:8px 8px 8px 0;cursor:pointer;font-weight:600;color:#1a1a1a" onclick="showUserActivities('${u.id}','${(u.display_name||u.email).replace(/'/g,"&#39;")}')">${u.display_name || "--"}</td>
+        <td style="color:#888;padding:8px 8px 8px 0;cursor:pointer" onclick="showUserActivities('${u.id}','${(u.display_name||u.email).replace(/'/g,"&#39;")}')">${u.email}</td>
         <td style="padding:8px 8px 8px 0">
           <select onchange="changeUserRole('${u.id}', this.value)" style="padding:4px 6px;border:1px solid #e0e0e0;border-radius:5px;font-size:12px">
             <option value="member" ${u.role==='member'?'selected':''}>Member</option>
@@ -1607,6 +1631,36 @@ async function loadAllUsers() {
       </tr>`).join("")}
     </tbody>
   </table>`;
+}
+
+async function showUserActivities(userId, name) {
+  const panel = document.getElementById("admin-user-detail");
+  panel.innerHTML = `<div style="font-weight:600;color:#1a1a1a;margin-bottom:8px">${name}</div><div style="color:#aaa">Loading...</div>`;
+
+  const { data, error } = await supabaseClient
+    .from("activity_ownership")
+    .select("activity_id")
+    .eq("user_id", userId);
+
+  if (error) {
+    panel.innerHTML = `<div style="font-weight:600;color:#1a1a1a;margin-bottom:8px">${name}</div><div style="color:#c62828">Couldn't load activities.</div>`;
+    return;
+  }
+
+  const ownedIds = new Set((data || []).map(r => r.activity_id));
+  const owned = (allRecords || []).filter(r => r.activityId && ownedIds.has(r.activityId));
+
+  if (owned.length === 0) {
+    panel.innerHTML = `<div style="font-weight:600;color:#1a1a1a;margin-bottom:8px">${name}</div><div style="color:#aaa">No activities owned in the current cycle.</div>`;
+    return;
+  }
+
+  panel.innerHTML = `<div style="font-weight:600;color:#1a1a1a;margin-bottom:8px">${name}</div>` +
+    owned.map(r => `
+      <div style="padding:8px 0;border-top:1px solid #f0f0f0">
+        <div style="font-weight:600;color:#1a1a1a">${r.title || r.description || "Untitled"}</div>
+        <div style="font-size:11px;color:#888">${r.unit||""} &bull; ${r.status||""}</div>
+      </div>`).join("");
 }
 
 async function changeUserRole(id, role) {
