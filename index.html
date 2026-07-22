@@ -182,6 +182,8 @@ input[list]::-webkit-calendar-picker-indicator{opacity:0.6;cursor:pointer}
         style="flex:1;padding:8px;background:none;border:none;border-bottom:2px solid transparent;color:#888;font-weight:600;font-size:13px;cursor:pointer">Sign Up</button>
     </div>
 
+    <input type="text" id="auth-fullname" placeholder="Full name" autocomplete="name"
+      style="display:none;width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;margin-bottom:8px;outline:none;box-sizing:border-box">
     <input type="email" id="auth-email" placeholder="Email" autocomplete="username"
       style="width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;margin-bottom:8px;outline:none;box-sizing:border-box">
     <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password"
@@ -378,7 +380,8 @@ input[list]::-webkit-calendar-picker-indicator{opacity:0.6;cursor:pointer}
 
       <!-- Verification strip -->
       <div id="verify-strip" style="display:none">
-        <div class="info-strip" style="grid-template-columns:1fr 1fr 1fr 1fr">
+        <div class="info-strip" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
+          <div class="info-item"><label>Owned by</label><span id="d-owned-by">--</span></div>
           <div class="info-item"><label>Last verified</label><span id="d-last-verified">--</span></div>
           <div class="info-item"><label>Last verified by</label><span id="d-last-verified-by">--</span></div>
           <div class="info-item"><label>Days since verification</label><span id="d-days-verify">--</span></div>
@@ -1206,6 +1209,26 @@ function openForm(record){
     vn.textContent=record.verifyNeeded||"--";
     vn.className=(record.verifyNeeded||"").toLowerCase()==="yes"?"needs-verify":"";
 
+    // Owned by -- looked up separately since ownership lives in Supabase, not the Sheet
+    const ownedByEl = document.getElementById("d-owned-by");
+    ownedByEl.textContent = "Loading...";
+    if (record.activityId) {
+      supabaseClient
+        .from("activity_owners")
+        .select("display_name")
+        .eq("activity_id", record.activityId)
+        .then(({ data }) => {
+          if (data && data.length > 0) {
+            ownedByEl.textContent = data.map(r => r.display_name).join(", ");
+          } else {
+            ownedByEl.textContent = "Unclaimed";
+          }
+        })
+        .catch(() => { ownedByEl.textContent = "--"; });
+    } else {
+      ownedByEl.textContent = "--";
+    }
+
     setVal("f-borough-form",record.borough);
     onBoroughChange();
     setTimeout(()=>setVal("f-neighborhood-form",record.neighborhood),50);
@@ -1338,10 +1361,11 @@ function validateForm() {
 function promptVerifierName(callback) {
   const overlay = document.createElement("div");
   overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;display:flex;align-items:center;justify-content:center";
+  const displayName = (currentUserProfile && (currentUserProfile.display_name || currentUserProfile.email)) || "you";
   overlay.innerHTML = `
     <div style="background:#fff;border-radius:12px;padding:28px;width:400px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,.2)">
       <h3 style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:4px">Save record</h3>
-      <p style="font-size:13px;color:#888;margin-bottom:18px">Changes will be saved to the activity dashboard.</p>
+      <p style="font-size:13px;color:#888;margin-bottom:18px">Changes will be saved to the activity dashboard as ${displayName}.</p>
 
       <div style="background:#f8f9ff;border:1px solid #e0e0f0;border-radius:8px;padding:14px 16px;margin-bottom:16px">
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
@@ -1353,15 +1377,6 @@ function promptVerifierName(callback) {
         </label>
       </div>
 
-      <div style="margin-bottom:6px">
-        <label style="display:block;font-size:12px;font-weight:500;color:#555;margin-bottom:4px">Verified / Saved by <span style="color:#e53935">*</span></label>
-        <input type="text" id="verifier-name-input" placeholder="First Last"
-          style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box"
-          onkeydown="if(event.key==='Enter')document.getElementById('verifier-confirm-btn').click()">
-        <div style="font-size:11px;color:#aaa;margin-top:4px">First &amp; Last name required</div>
-      </div>
-      <div id="verifier-error" style="color:#c62828;font-size:12px;min-height:16px;margin-bottom:12px"></div>
-
       <div style="display:flex;gap:8px;justify-content:flex-end">
         <button onclick="document.body.removeChild(this.closest('[style*=fixed]'))"
           style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;font-size:13px;cursor:pointer;color:#555">Cancel</button>
@@ -1369,31 +1384,15 @@ function promptVerifierName(callback) {
           style="padding:8px 18px;border:none;border-radius:6px;background:#3949AB;color:#fff;font-size:13px;font-weight:600;cursor:pointer"
           onclick="
             const isVerifying = document.getElementById('verify-checkbox').checked;
-            const name = document.getElementById('verifier-name-input').value.trim();
-            const errEl = document.getElementById('verifier-error');
-            if (!name) { errEl.textContent='Please enter your name.'; return; }
-            if (!name.includes(' ') || name.split(' ').filter(Boolean).length < 2) { errEl.textContent='Please enter both first and last name.'; return; }
             document.body.removeChild(this.closest('[style*=fixed]'));
             window._isVerifying = isVerifying;
-            window._verifierName = name;
+            window._verifierName = (currentUserProfile && (currentUserProfile.display_name || currentUserProfile.email)) || '';
             window._verifierCallback();
           ">Save</button>
       </div>
     </div>`;
   window._verifierCallback = callback;
   document.body.appendChild(overlay);
-
-  // Focus name field on open
-  setTimeout(() => {
-    const cb = document.getElementById("verify-checkbox");
-    const wrap = null;
-    const input = document.getElementById("verifier-name-input");
-    cb.addEventListener("change", () => {
-      wrap.style.opacity = cb.checked ? "1" : "0.4";
-      wrap.style.pointerEvents = cb.checked ? "auto" : "none";
-      if (cb.checked) input.focus();
-    });
-  }, 50);
 }
 
 async function saveRecord(){
@@ -1409,8 +1408,8 @@ async function saveRecord(){
     statusEl.textContent="Saving...";statusEl.style.color="#888";
     try{
       const body=currentRowIndex
-        ?{action:"updateRecord",app:APP_ID,rowIndex:currentRowIndex,data:getFormData(),sheet:currentSheetName}
-        :{action:"addRecord",app:APP_ID,data:getFormData(),sheet:currentSheetName};
+        ?{action:"updateRecord",app:APP_ID,rowIndex:currentRowIndex,data:getFormData(),sheet:currentSheetName,authToken:currentAuthToken}
+        :{action:"addRecord",app:APP_ID,data:getFormData(),sheet:currentSheetName,authToken:currentAuthToken};
       const res=await fetch(API,{method:"POST",body:JSON.stringify(body)});
       const json=await res.json();
       if(json.error)throw new Error(json.error);
@@ -1491,7 +1490,7 @@ function confirmDeleteWithReason(){
 async function doDelete(deletedBy,deletionReason){
   const statusEl=document.getElementById("form-status");statusEl.textContent="Deleting...";
   try{
-    const res=await fetch(API,{method:"POST",body:JSON.stringify({action:"deleteRecord",app:APP_ID,rowIndex:currentRowIndex,sheet:currentSheetName,deletedBy,deletionReason})});
+    const res=await fetch(API,{method:"POST",body:JSON.stringify({action:"deleteRecord",app:APP_ID,rowIndex:currentRowIndex,sheet:currentSheetName,deletedBy,deletionReason,authToken:currentAuthToken})});
     const json=await res.json();if(json.error)throw new Error(json.error);
     allRecords=allRecords.filter(r=>r.rowIndex!==currentRowIndex);
     saveFilterState();closeForm();applyFilters();loadData();
@@ -1675,11 +1674,13 @@ function setAuthMode(mode) {
   signupTab.style.borderBottomColor = mode === "signup" ? "#3949AB" : "transparent";
   signupTab.style.color             = mode === "signup" ? "#3949AB" : "#888";
   document.getElementById("auth-submit-btn").textContent = mode === "signin" ? "Sign In" : "Sign Up";
+  document.getElementById("auth-fullname").style.display = mode === "signup" ? "block" : "none";
   document.getElementById("auth-error").textContent = "";
   document.getElementById("auth-info").textContent = "";
 }
 
 async function submitAuth() {
+  const fullName = document.getElementById("auth-fullname").value.trim();
   const email    = document.getElementById("auth-email").value.trim();
   const password = document.getElementById("auth-password").value;
   const error    = document.getElementById("auth-error");
@@ -1689,6 +1690,10 @@ async function submitAuth() {
 
   if (!email || !password) {
     error.textContent = "Please enter both email and password.";
+    return;
+  }
+  if (authMode === "signup" && !fullName) {
+    error.textContent = "Please enter your full name.";
     return;
   }
 
@@ -1701,7 +1706,10 @@ async function submitAuth() {
     if (authMode === "signin") {
       result = await supabaseClient.auth.signInWithPassword({ email, password });
     } else {
-      result = await supabaseClient.auth.signUp({ email, password });
+      result = await supabaseClient.auth.signUp({
+        email, password,
+        options: { data: { full_name: fullName } }
+      });
     }
     if (result.error) {
       error.textContent = result.error.message;
