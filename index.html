@@ -301,6 +301,16 @@ input[list]::-webkit-calendar-picker-indicator{opacity:0.6;cursor:pointer}
       <div style="padding:16px 16px 0">
         <div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Owned by</div>
         <div id="admin-sidebar-username" style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:14px">--</div>
+        <div style="display:flex;gap:6px;margin-bottom:12px">
+          <select id="admin-sidebar-filter-status" onchange="renderAdminSidebarActivities()" style="flex:1;padding:6px 8px;border:1px solid #e0e0e0;border-radius:5px;font-size:12px">
+            <option value="">All statuses</option>
+          </select>
+          <select id="admin-sidebar-filter-verify" onchange="renderAdminSidebarActivities()" style="flex:1;padding:6px 8px;border:1px solid #e0e0e0;border-radius:5px;font-size:12px">
+            <option value="">Verification: Any</option>
+            <option value="yes">Needs verification</option>
+            <option value="no">Verified / not needed</option>
+          </select>
+        </div>
       </div>
       <div id="admin-sidebar-activities" style="flex:1;overflow-y:auto;padding:0 16px 16px">
         <div style="color:#aaa;font-size:13px;padding:20px 0;text-align:center">Click a user in the Admin panel to see what they own.</div>
@@ -1717,17 +1727,49 @@ async function showUserActivities(userId, name) {
   const ownedIds = new Set((data || []).map(r => r.activity_id));
   adminSidebarOwnedRecords = (allRecords || []).filter(r => r.activityId && ownedIds.has(r.activityId));
 
+  // Populate the status filter with whatever statuses actually appear
+  const statusSel = document.getElementById("admin-sidebar-filter-status");
+  const uniqueStatuses = [...new Set(adminSidebarOwnedRecords.map(r => r.status).filter(Boolean))].sort();
+  statusSel.innerHTML = `<option value="">All statuses</option>` +
+    uniqueStatuses.map(s => `<option value="${s}">${s}</option>`).join("");
+  document.getElementById("admin-sidebar-filter-verify").value = "";
+
+  renderAdminSidebarActivities();
+}
+
+function renderAdminSidebarActivities() {
+  const listEl = document.getElementById("admin-sidebar-activities");
+  const statusFilter = document.getElementById("admin-sidebar-filter-status").value;
+  const verifyFilter = document.getElementById("admin-sidebar-filter-verify").value;
+
+  const filtered = adminSidebarOwnedRecords.filter(r => {
+    if (statusFilter && r.status !== statusFilter) return false;
+    if (verifyFilter) {
+      const needsVerify = (r.verifyNeeded||"").toString().toLowerCase() === "yes";
+      if (verifyFilter === "yes" && !needsVerify) return false;
+      if (verifyFilter === "no" && needsVerify) return false;
+    }
+    return true;
+  });
+
   if (adminSidebarOwnedRecords.length === 0) {
     listEl.innerHTML = `<div style="color:#aaa;font-size:13px;padding:20px 0;text-align:center">No activities owned in the current cycle.</div>`;
     return;
   }
+  if (filtered.length === 0) {
+    listEl.innerHTML = `<div style="color:#aaa;font-size:13px;padding:20px 0;text-align:center">No activities match these filters.</div>`;
+    return;
+  }
 
-  listEl.innerHTML = adminSidebarOwnedRecords.map((r, i) => `
-    <div class="admin-sidebar-activity-card" onclick="openForm(adminSidebarOwnedRecords[${i}])"
+  listEl.innerHTML = filtered.map(r => {
+    const i = adminSidebarOwnedRecords.indexOf(r);
+    const needsVerify = (r.verifyNeeded||"").toString().toLowerCase() === "yes";
+    return `<div class="admin-sidebar-activity-card" onclick="openForm(adminSidebarOwnedRecords[${i}])"
       style="padding:10px 8px;margin:0 -8px;border-top:1px solid #f0f0f0;cursor:pointer;border-radius:6px;transition:background .15s">
       <div style="font-weight:600;color:#1a1a1a;font-size:13px">${r.title || r.description || "Untitled"}</div>
-      <div style="font-size:11px;color:#888;margin-top:2px">${r.unit||""} &bull; ${r.status||""}</div>
-    </div>`).join("");
+      <div style="font-size:11px;color:#888;margin-top:2px">${r.unit||""} &bull; ${r.status||""}${needsVerify ? " &bull; <span style=\"color:#c62828\">Needs verification</span>" : ""}</div>
+    </div>`;
+  }).join("");
 }
 
 async function preApproveEmail() {
