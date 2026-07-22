@@ -1640,9 +1640,12 @@ function renderAdminUsersList(data) {
       <th style="padding:6px 8px 6px 0">Name</th><th>Email</th><th>Role</th><th>Status</th><th></th>
     </tr></thead>
     <tbody>
-    ${data.map(u => `
+    ${data.map(u => {
+      const isSuspended = u.status === "suspended";
+      const nameColor = isSuspended ? "#bbb" : "#1a1a1a";
+      return `
       <tr style="border-top:1px solid #f0f0f0" data-row-user-id="${u.id}">
-        <td style="padding:8px 8px 8px 0;cursor:pointer;font-weight:600;color:#1a1a1a" onclick="showUserActivities('${u.id}','${(u.display_name||u.email).replace(/'/g,"&#39;")}')">${u.display_name || "--"}</td>
+        <td style="padding:8px 8px 8px 0;cursor:pointer;font-weight:600;color:${nameColor}" onclick="showUserActivities('${u.id}','${(u.display_name||u.email).replace(/'/g,"&#39;")}')">${u.display_name || "--"}</td>
         <td style="color:#888;padding:8px 8px 8px 0;cursor:pointer" onclick="showUserActivities('${u.id}','${(u.display_name||u.email).replace(/'/g,"&#39;")}')">${u.email}</td>
         <td style="padding:8px 8px 8px 0">
           <select id="role-${u.id}" onchange="markRowDirty('${u.id}')" style="padding:4px 6px;border:1px solid #e0e0e0;border-radius:5px;font-size:12px">
@@ -1662,7 +1665,8 @@ function renderAdminUsersList(data) {
             style="padding:4px 10px;border:1px solid #e0e0e0;border-radius:5px;font-size:12px;background:#f5f5f5;color:#aaa;cursor:not-allowed">Save</button>
           <span id="save-status-${u.id}" style="font-size:11px;margin-left:6px"></span>
         </td>
-      </tr>`).join("")}
+      </tr>`;
+    }).join("")}
     </tbody>
   </table>`;
 }
