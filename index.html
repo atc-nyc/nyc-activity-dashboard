@@ -294,6 +294,16 @@ input[list]::-webkit-calendar-picker-indicator{opacity:0.6;cursor:pointer}
 </div>
     </div>
 
+    <div id="tab-admin-activities" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-width:0">
+      <div style="padding:16px 16px 0">
+        <div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Owned by</div>
+        <div id="admin-sidebar-username" style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:14px">--</div>
+      </div>
+      <div id="admin-sidebar-activities" style="flex:1;overflow-y:auto;padding:0 16px 16px">
+        <div style="color:#aaa;font-size:13px;padding:20px 0;text-align:center">Click a user in the Admin panel to see what they own.</div>
+      </div>
+    </div>
+
   </div>
 
   <div id="map"></div>
@@ -330,12 +340,8 @@ input[list]::-webkit-calendar-picker-indicator{opacity:0.6;cursor:pointer}
         <h3 style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:12px">All Users</h3>
         <input type="text" id="admin-users-search" placeholder="Search by name or email..." oninput="filterAdminUsers()"
           style="width:100%;padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;margin-bottom:14px;outline:none;box-sizing:border-box">
-        <div style="display:flex;gap:20px;align-items:flex-start">
-          <div id="admin-users-list" style="font-size:13px;color:#888;flex:2;min-width:0">Loading...</div>
-          <div id="admin-user-detail" style="font-size:13px;flex:1;min-width:220px;border-left:1px solid #f0f0f0;padding-left:20px;position:sticky;top:0">
-            <div style="color:#aaa">Click a user to see the activities they own.</div>
-          </div>
-        </div>
+        <p style="font-size:11px;color:#aaa;margin-bottom:10px">Click a name or email to see what they own in the sidebar.</p>
+        <div id="admin-users-list" style="font-size:13px;color:#888">Loading...</div>
       </div>
     </div>
   </div>
@@ -1499,6 +1505,7 @@ function showTab(tab){
     return; // defense in depth -- button is hidden for non-admins, but block direct calls too
   }
   document.getElementById("tab-records").style.display=tab==="records"?"flex":"none";
+  document.getElementById("tab-admin-activities").style.display=tab==="admin"?"flex":"none";
   // Show/hide map vs admin panel
   const mapEl = document.getElementById("map");
   const adminEl = document.getElementById("admin-panel");
@@ -1633,9 +1640,12 @@ function renderAdminUsersList(data) {
   </table>`;
 }
 
+let adminSidebarOwnedRecords = [];
+
 async function showUserActivities(userId, name) {
-  const panel = document.getElementById("admin-user-detail");
-  panel.innerHTML = `<div style="font-weight:600;color:#1a1a1a;margin-bottom:8px">${name}</div><div style="color:#aaa">Loading...</div>`;
+  document.getElementById("admin-sidebar-username").textContent = name;
+  const listEl = document.getElementById("admin-sidebar-activities");
+  listEl.innerHTML = `<div style="color:#aaa;font-size:13px;padding:20px 0;text-align:center">Loading...</div>`;
 
   const { data, error } = await supabaseClient
     .from("activity_ownership")
@@ -1643,24 +1653,24 @@ async function showUserActivities(userId, name) {
     .eq("user_id", userId);
 
   if (error) {
-    panel.innerHTML = `<div style="font-weight:600;color:#1a1a1a;margin-bottom:8px">${name}</div><div style="color:#c62828">Couldn't load activities.</div>`;
+    listEl.innerHTML = `<div style="color:#c62828;font-size:13px;padding:20px 0;text-align:center">Couldn't load activities.</div>`;
     return;
   }
 
   const ownedIds = new Set((data || []).map(r => r.activity_id));
-  const owned = (allRecords || []).filter(r => r.activityId && ownedIds.has(r.activityId));
+  adminSidebarOwnedRecords = (allRecords || []).filter(r => r.activityId && ownedIds.has(r.activityId));
 
-  if (owned.length === 0) {
-    panel.innerHTML = `<div style="font-weight:600;color:#1a1a1a;margin-bottom:8px">${name}</div><div style="color:#aaa">No activities owned in the current cycle.</div>`;
+  if (adminSidebarOwnedRecords.length === 0) {
+    listEl.innerHTML = `<div style="color:#aaa;font-size:13px;padding:20px 0;text-align:center">No activities owned in the current cycle.</div>`;
     return;
   }
 
-  panel.innerHTML = `<div style="font-weight:600;color:#1a1a1a;margin-bottom:8px">${name}</div>` +
-    owned.map(r => `
-      <div style="padding:8px 0;border-top:1px solid #f0f0f0">
-        <div style="font-weight:600;color:#1a1a1a">${r.title || r.description || "Untitled"}</div>
-        <div style="font-size:11px;color:#888">${r.unit||""} &bull; ${r.status||""}</div>
-      </div>`).join("");
+  listEl.innerHTML = adminSidebarOwnedRecords.map((r, i) => `
+    <div onclick="openForm(adminSidebarOwnedRecords[${i}])"
+      style="padding:10px 0;border-top:1px solid #f0f0f0;cursor:pointer">
+      <div style="font-weight:600;color:#1a1a1a;font-size:13px">${r.title || r.description || "Untitled"}</div>
+      <div style="font-size:11px;color:#888;margin-top:2px">${r.unit||""} &bull; ${r.status||""}</div>
+    </div>`).join("");
 }
 
 async function changeUserRole(id, role) {
