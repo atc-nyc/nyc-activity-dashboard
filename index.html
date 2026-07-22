@@ -162,6 +162,7 @@ body{background:#f5f5f5;color:#1a1a1a}
 #app.sidebar-collapsed #sidebar{transform:translateX(-300px);width:0;border:none}
 #sidebar-toggle{position:absolute;top:50%;transform:translateY(-50%);right:-18px;width:18px;height:52px;background:#fff;border:1px solid #e0e0e0;border-left:none;border-radius:0 8px 8px 0;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:600;color:#555;font-size:13px;box-shadow:2px 0 4px rgba(0,0,0,.08)}
 #sidebar-toggle:hover{background:#f0f2ff;color:#3949AB}
+.admin-sidebar-activity-card:hover{background:#f0f2ff}
 #sidebar{position:relative}
 input[list]{cursor:pointer}
 input[list]::-webkit-calendar-picker-indicator{opacity:0.6;cursor:pointer}
@@ -340,7 +341,7 @@ input[list]::-webkit-calendar-picker-indicator{opacity:0.6;cursor:pointer}
         <h3 style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:12px">All Users</h3>
         <input type="text" id="admin-users-search" placeholder="Search by name or email..." oninput="filterAdminUsers()"
           style="width:100%;padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;margin-bottom:14px;outline:none;box-sizing:border-box">
-        <p style="font-size:11px;color:#aaa;margin-bottom:10px">Click a name or email to see what they own in the sidebar.</p>
+        <p style="font-size:11px;color:#aaa;margin-bottom:10px">Click a name or email to see what activities they own, listed in the sidebar.</p>
         <div id="admin-users-list" style="font-size:13px;color:#888">Loading...</div>
       </div>
     </div>
@@ -1720,8 +1721,8 @@ async function showUserActivities(userId, name) {
   }
 
   listEl.innerHTML = adminSidebarOwnedRecords.map((r, i) => `
-    <div onclick="openForm(adminSidebarOwnedRecords[${i}])"
-      style="padding:10px 0;border-top:1px solid #f0f0f0;cursor:pointer">
+    <div class="admin-sidebar-activity-card" onclick="openForm(adminSidebarOwnedRecords[${i}])"
+      style="padding:10px 8px;margin:0 -8px;border-top:1px solid #f0f0f0;cursor:pointer;border-radius:6px;transition:background .15s">
       <div style="font-weight:600;color:#1a1a1a;font-size:13px">${r.title || r.description || "Untitled"}</div>
       <div style="font-size:11px;color:#888;margin-top:2px">${r.unit||""} &bull; ${r.status||""}</div>
     </div>`).join("");
@@ -1931,8 +1932,8 @@ async function submitAuth() {
       return;
     }
     if (authMode === "signup") {
-      info.textContent = "Account created. Your access is pending ATC review unless your email was pre-approved.";
       setAuthMode("signin");
+      info.textContent = "Request submitted. If your email is on the pre-approved list, you should be able to sign in now. If it is not, your access is pending ATC review.";
       return;
     }
     await handleSession(result.data.session);
