@@ -630,6 +630,12 @@ input[list]::-webkit-calendar-picker-indicator{opacity:0.6;cursor:pointer}
             <input type="text" id="f-zip" placeholder="e.g. 11201" maxlength="5">
           </div>
         </div>
+        <div class="frow full">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:500;color:#555">
+            <input type="checkbox" id="f-hide-address" style="width:15px;height:15px;cursor:pointer;accent-color:#3949AB">
+            Hide street address from public view (shows "(hidden)" instead)
+          </label>
+        </div>
       </div>
 
       <!-- CONTACT -->
@@ -1182,6 +1188,7 @@ function openForm(record){
    "f-notes","f-action","f-bahais","f-fof","f-total","f-pausedate","f-publish-bulletin"].forEach(id=>setVal(id,""));
   const ht=document.getElementById("f-hosts-text");if(ht)ht.value="";
   const at=document.getElementById("f-accompaniers-text");if(at)at.value="";
+  document.getElementById("f-hide-address").checked = false;
 
   const strip=document.getElementById("verify-strip");
   strip.style.display=record?"block":"none";
@@ -1233,6 +1240,7 @@ function openForm(record){
     setTimeout(()=>setVal("f-neighborhood-form",record.neighborhood),50);
     setVal("f-unit-form",       record.unit);
     setVal("f-street",          record.streetAddress);
+    document.getElementById("f-hide-address").checked = (record.hideAddress||"").toString().toLowerCase() === "yes";
     setVal("f-zip",             record.zip);
     setVal("f-devodesc",        record.description);
     setVal("f-typegroup-sel",   record.typeGroup); onTypeGroupChange();
@@ -1280,6 +1288,7 @@ function getFormData(){
     neighborhood: document.getElementById("f-neighborhood-form").value,
     unit:         document.getElementById("f-unit-form").value,
     streetAddress:street,
+    hideAddress:  document.getElementById("f-hide-address").checked ? "Yes" : "No",
     zip,
     fullAddress,
     devoDesc:     "", // legacy -- Title now handles col K
