@@ -1958,8 +1958,27 @@ async function preApproveEmail() {
     statusEl.style.color = "#c62828";
     return;
   }
-  statusEl.textContent = "Adding...";
+  statusEl.textContent = "Checking...";
   statusEl.style.color = "#888";
+
+  const { data: existing, error: lookupError } = await supabaseClient
+    .from("users")
+    .select("status")
+    .eq("email", email)
+    .limit(1);
+
+  if (lookupError) {
+    statusEl.textContent = "Error: " + lookupError.message;
+    statusEl.style.color = "#c62828";
+    return;
+  }
+  if (existing && existing.length > 0) {
+    statusEl.textContent = `This email already has an account (status: ${existing[0].status}). No need to pre-approve it.`;
+    statusEl.style.color = "#c62828";
+    return;
+  }
+
+  statusEl.textContent = "Adding...";
   const { error } = await supabaseClient.from("pre_approved_emails").insert({
     email, role, added_by: currentUserProfile.id
   });
@@ -2035,10 +2054,19 @@ function renderPreApprovedList(data) {
         </select>
         <button id="preapprove-save-${safeId}" onclick="savePreApprovedRole('${p.email.replace(/'/g,"\\'")}')" disabled
           style="padding:4px 10px;border:1px solid #e0e0e0;border-radius:5px;font-size:12px;background:#f5f5f5;color:#aaa;cursor:not-allowed">Save</button>
+        <button onclick="removePreApproved('${p.email.replace(/'/g,"\\'")}')"
+          style="padding:4px 10px;border:1px solid #c62828;border-radius:5px;font-size:12px;background:#fff;color:#c62828;cursor:pointer">Remove</button>
         <span id="preapprove-status-${safeId}" style="font-size:11px"></span>
       </div>
     </div>`;
   }).join("");
+}
+
+async function removePreApproved(email) {
+  if (!confirm(`Remove ${email} from the pre-approval list?`)) return;
+  const { error } = await supabaseClient.from("pre_approved_emails").delete().eq("email", email);
+  if (error) { alert("Error removing pre-approval: " + error.message); return; }
+  loadPreApprovedList();
 }
 
 function markPreApprovedRowDirty(email) {
