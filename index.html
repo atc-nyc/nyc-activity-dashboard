@@ -347,6 +347,18 @@ input[list]::-webkit-calendar-picker-indicator{opacity:0.6;cursor:pointer}
             style="background:#3949AB;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">Add</button>
         </div>
         <div id="admin-preapprove-status" style="font-size:12px;margin-top:8px;min-height:16px"></div>
+
+        <div style="border-top:1px solid #f0f0f0;margin-top:16px;padding-top:16px">
+          <input type="text" id="admin-preapprove-search" placeholder="Search by email..." oninput="filterPreApprovedList()"
+            style="width:100%;padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;margin-bottom:8px;outline:none;box-sizing:border-box">
+          <select id="admin-preapprove-filter-role" onchange="filterPreApprovedList()" style="width:100%;padding:6px 8px;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;margin-bottom:12px">
+            <option value="">All roles</option>
+            <option value="admin">Admin</option>
+            <option value="ad_user">AD User</option>
+            <option value="member">Member</option>
+          </select>
+          <div id="admin-preapprove-list" style="font-size:13px;color:#888">Loading...</div>
+        </div>
       </div>
 
       <div style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:20px">
@@ -1568,7 +1580,7 @@ function showTab(tab){
 // can read/write this data -- this UI is just a convenience layer on top.
 
 async function loadAdminData() {
-  await Promise.all([loadPendingUsers(), loadAllUsers()]);
+  await Promise.all([loadPendingUsers(), loadAllUsers(), loadPreApprovedList()]);
 }
 
 async function loadPendingUsers() {
@@ -1819,6 +1831,50 @@ async function preApproveEmail() {
   statusEl.textContent = "Added! They'll get instant access when they sign up.";
   statusEl.style.color = "#2e7d32";
   emailEl.value = "";
+  loadPreApprovedList();
+}
+
+let adminPreApprovedCache = [];
+
+async function loadPreApprovedList() {
+  const el = document.getElementById("admin-preapprove-list");
+  el.textContent = "Loading...";
+  const { data, error } = await supabaseClient
+    .from("pre_approved_emails")
+    .select("email,role")
+    .is("used_at", null)
+    .order("email");
+  if (error) { el.textContent = "Couldn't load pre-approved emails."; return; }
+  adminPreApprovedCache = data || [];
+  filterPreApprovedList();
+}
+
+function filterPreApprovedList() {
+  const q = document.getElementById("admin-preapprove-search").value.trim().toLowerCase();
+  const roleFilter = document.getElementById("admin-preapprove-filter-role").value;
+  const filtered = adminPreApprovedCache.filter(p => {
+    if (roleFilter && p.role !== roleFilter) return false;
+    if (q && !(p.email||"").toLowerCase().includes(q)) return false;
+    return true;
+  });
+  renderPreApprovedList(filtered);
+}
+
+function renderPreApprovedList(data) {
+  const el = document.getElementById("admin-preapprove-list");
+  if (!adminPreApprovedCache.length) {
+    el.innerHTML = "<div style='color:#aaa'>No pending pre-approvals.</div>";
+    return;
+  }
+  if (!data.length) {
+    el.innerHTML = "<div style='color:#aaa'>No matching pre-approvals.</div>";
+    return;
+  }
+  el.innerHTML = data.map(p => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #f0f0f0">
+      <span style="color:#1a1a1a">${p.email}</span>
+      <span style="font-size:11px;color:#888;background:#f5f5f5;padding:2px 8px;border-radius:10px">${p.role}</span>
+    </div>`).join("");
 }
 
 function updateVisibilityFromPublish() {
