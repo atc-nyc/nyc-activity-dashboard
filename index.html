@@ -760,6 +760,22 @@ input[list]::-webkit-calendar-picker-indicator{opacity:0.6;cursor:pointer}
         </div>
       </div>
 
+      <!-- CO-OWNERS -->
+      <div class="form-section" id="form-coowners-section" style="display:none">
+        <div class="form-section-title">Co-Owners</div>
+        <p style="font-size:12px;color:#888;margin-bottom:10px">
+          Add anyone else who should be able to edit this activity.
+          If they don't have an account yet, they'll be added automatically once they sign up with that email.
+        </p>
+        <div id="coowners-list" style="margin-bottom:10px;font-size:13px;color:#888">--</div>
+        <div class="frow" style="display:flex;gap:8px">
+          <input type="email" id="coowner-email" placeholder="email@example.com" style="flex:1;padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px">
+          <button type="button" onclick="addCoOwner()"
+            style="background:#3949AB;color:#fff;border:none;padding:0 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">Add</button>
+        </div>
+        <div id="coowner-status" style="font-size:12px;margin-top:6px;min-height:16px"></div>
+      </div>
+
     </div>
     <div id="form-footer">
       <button class="btn-save" onclick="saveRecord()">Save</button>
@@ -803,6 +819,7 @@ const FIELD_COLS = {
 let allRecords=[], filteredRecords=[], dropdowns={}, resourceList=[];
 let map, markersLayer, polygonsLayer;
 let currentRowIndex=null;
+let currentFormActivityId=null;
 let hostsSelected=[], accSelected=[];
 let _savedFilterState=null;
 
@@ -1206,15 +1223,91 @@ function setVal(id,val){
   }
 }
 
+async function loadCoOwners(activityId) {
+  const el = document.getElementById("coowners-list");
+  el.textContent = "Loading...";
+  const { data, error } = await supabaseClient
+    .from("activity_owners")
+    .select("display_name")
+    .eq("activity_id", activityId);
+  if (error) { el.textContent = "Couldn't load owners."; return; }
+  el.textContent = (data && data.length) ? data.map(d => d.display_name).join(", ") : "No one yet";
+}
+
+async function addCoOwner() {
+  const emailEl  = document.getElementById("coowner-email");
+  const statusEl = document.getElementById("coowner-status");
+  const email = emailEl.value.trim().toLowerCase();
+
+  if (!currentFormActivityId) {
+    statusEl.textContent = "Save this activity first, then add co-owners.";
+    statusEl.style.color = "#c62828";
+    return;
+  }
+  if (!email || !email.includes("@")) {
+    statusEl.textContent = "Enter a valid email.";
+    statusEl.style.color = "#c62828";
+    return;
+  }
+
+  statusEl.textContent = "Adding...";
+  statusEl.style.color = "#888";
+
+  const { data: foundId, error: lookupError } = await supabaseClient
+    .rpc("find_user_id_by_email", { lookup_email: email });
+
+  if (lookupError) {
+    statusEl.textContent = "Error: " + lookupError.message;
+    statusEl.style.color = "#c62828";
+    return;
+  }
+
+  if (foundId) {
+    const { error } = await supabaseClient.from("activity_ownership").insert({
+      user_id: foundId, activity_id: currentFormActivityId, permission: "owner"
+    });
+    if (error && !error.message.toLowerCase().includes("duplicate")) {
+      statusEl.textContent = "Error: " + error.message;
+      statusEl.style.color = "#c62828";
+      return;
+    }
+    statusEl.textContent = "Added! They can now edit this activity too.";
+  } else {
+    const { error } = await supabaseClient.from("pending_ownership_by_email").insert({
+      email, activity_id: currentFormActivityId, permission: "owner"
+    });
+    if (error && !error.message.toLowerCase().includes("duplicate")) {
+      statusEl.textContent = "Error: " + error.message;
+      statusEl.style.color = "#c62828";
+      return;
+    }
+    statusEl.textContent = "No account with that email yet -- they'll be added automatically once they sign up.";
+  }
+  statusEl.style.color = "#2e7d32";
+  emailEl.value = "";
+  loadCoOwners(currentFormActivityId);
+}
+
 function openForm(record){
   if (document.getElementById("cycle-error-banner").style.display !== "none") {
     alert("Active cycle is not set. Please click the Cycle button and configure a valid sheet before editing records.");
     return;
   }
   currentRowIndex=record?record.rowIndex:null;
+  currentFormActivityId = record ? record.activityId : null;
   document.getElementById("form-title").textContent=record?"Edit activity":"New activity";
   document.getElementById("btn-delete").style.display=record?"block":"none";
   document.getElementById("form-status").textContent="";
+
+  const coownersSection = document.getElementById("form-coowners-section");
+  document.getElementById("coowner-email").value = "";
+  document.getElementById("coowner-status").textContent = "";
+  if (record && record.activityId) {
+    coownersSection.style.display = "block";
+    loadCoOwners(record.activityId);
+  } else {
+    coownersSection.style.display = "none";
+  }
 
   // Reset
   ["f-borough-form","f-unit-form","f-neighborhood-form","f-activity-form","f-recurrence-form",
