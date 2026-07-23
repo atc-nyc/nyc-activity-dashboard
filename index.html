@@ -352,7 +352,20 @@ input[list]::-webkit-calendar-picker-indicator{opacity:0.6;cursor:pointer}
       <div style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:20px">
         <h3 style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:12px">All Users</h3>
         <input type="text" id="admin-users-search" placeholder="Search by name or email..." oninput="filterAdminUsers()"
-          style="width:100%;padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;margin-bottom:14px;outline:none;box-sizing:border-box">
+          style="width:100%;padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;margin-bottom:8px;outline:none;box-sizing:border-box">
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <select id="admin-users-filter-role" onchange="filterAdminUsers()" style="flex:1;padding:6px 8px;border:1px solid #e0e0e0;border-radius:6px;font-size:12px">
+            <option value="">All roles</option>
+            <option value="admin">Admin</option>
+            <option value="ad_user">AD User</option>
+            <option value="member">Member</option>
+          </select>
+          <select id="admin-users-filter-status" onchange="filterAdminUsers()" style="flex:1;padding:6px 8px;border:1px solid #e0e0e0;border-radius:6px;font-size:12px">
+            <option value="">All statuses</option>
+            <option value="active" selected>Active</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </div>
         <p style="font-size:11px;color:#aaa;margin-bottom:10px">Click a name or email to see what activities they own, listed in the sidebar.</p>
         <div id="admin-users-list" style="font-size:13px;color:#888">Loading...</div>
       </div>
@@ -1617,15 +1630,19 @@ async function loadAllUsers() {
     .order("email");
   if (error) { el.textContent = "Couldn't load users."; return; }
   adminAllUsersCache = data || [];
-  renderAdminUsersList(adminAllUsersCache);
+  filterAdminUsers();
 }
 
 function filterAdminUsers() {
   const q = document.getElementById("admin-users-search").value.trim().toLowerCase();
-  if (!q) { renderAdminUsersList(adminAllUsersCache); return; }
-  const filtered = adminAllUsersCache.filter(u =>
-    (u.display_name||"").toLowerCase().includes(q) || (u.email||"").toLowerCase().includes(q)
-  );
+  const roleFilter = document.getElementById("admin-users-filter-role").value;
+  const statusFilter = document.getElementById("admin-users-filter-status").value;
+  const filtered = adminAllUsersCache.filter(u => {
+    if (roleFilter && u.role !== roleFilter) return false;
+    if (statusFilter && u.status !== statusFilter) return false;
+    if (q && !((u.display_name||"").toLowerCase().includes(q) || (u.email||"").toLowerCase().includes(q))) return false;
+    return true;
+  });
   renderAdminUsersList(filtered);
 }
 
