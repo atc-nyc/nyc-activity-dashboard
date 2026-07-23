@@ -1226,12 +1226,48 @@ function setVal(id,val){
 async function loadCoOwners(activityId) {
   const el = document.getElementById("coowners-list");
   el.textContent = "Loading...";
-  const { data, error } = await supabaseClient
-    .from("activity_owners")
-    .select("display_name")
-    .eq("activity_id", activityId);
-  if (error) { el.textContent = "Couldn't load owners."; return; }
-  el.textContent = (data && data.length) ? data.map(d => d.display_name).join(", ") : "No one yet";
+
+  const [ownersRes, pendingRes] = await Promise.all([
+    supabaseClient.from("activity_owners").select("user_id,display_name").eq("activity_id", activityId),
+    supabaseClient.from("pending_ownership_by_email").select("email").eq("activity_id", activityId)
+  ]);
+
+  if (ownersRes.error) { el.textContent = "Couldn't load owners."; return; }
+
+  const owners  = ownersRes.data || [];
+  const pending = pendingRes.error ? [] : (pendingRes.data || []); // fails silently if not an owner yet (shouldn't happen once saved)
+
+  if (!owners.length && !pending.length) {
+    el.textContent = "No one yet";
+    return;
+  }
+
+  const ownerRows = owners.map(o => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">
+      <span>${o.display_name}</span>
+      <a href="#" onclick="removeCoOwner('${o.user_id}','${activityId}');return false;" style="color:#c62828;font-size:12px">Remove</a>
+    </div>`);
+  const pendingRows = pending.map(p => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">
+      <span>${p.email} <span style="color:#aaa;font-style:italic">(pending)</span></span>
+      <a href="#" onclick="removeCoOwnerPending('${p.email.replace(/'/g,"&#39;")}','${activityId}');return false;" style="color:#c62828;font-size:12px">Cancel</a>
+    </div>`);
+
+  el.innerHTML = ownerRows.concat(pendingRows).join("");
+}
+
+async function removeCoOwner(userId, activityId) {
+  const { error } = await supabaseClient.from("activity_ownership").delete()
+    .eq("user_id", userId).eq("activity_id", activityId);
+  if (error) { alert("Error removing owner: " + error.message); return; }
+  loadCoOwners(activityId);
+}
+
+async function removeCoOwnerPending(email, activityId) {
+  const { error } = await supabaseClient.from("pending_ownership_by_email").delete()
+    .eq("email", email).eq("activity_id", activityId);
+  if (error) { alert("Error cancelling invite: " + error.message); return; }
+  loadCoOwners(activityId);
 }
 
 async function addCoOwner() {
