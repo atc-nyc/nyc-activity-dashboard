@@ -828,6 +828,7 @@ let allRecords=[], filteredRecords=[], dropdowns={}, resourceList=[];
 let map, markersLayer, polygonsLayer;
 let currentRowIndex=null;
 let currentFormActivityId=null;
+let currentFormActivityTitle=null;
 let hostsSelected=[], accSelected=[];
 let _savedFilterState=null;
 
@@ -1318,7 +1319,7 @@ async function addCoOwner() {
     statusEl.textContent = "Added! They can now edit this activity too.";
   } else {
     const { error } = await supabaseClient.from("pending_ownership_by_email").insert({
-      email, activity_id: currentFormActivityId, permission: "owner"
+      email, activity_id: currentFormActivityId, permission: "owner", activity_title: currentFormActivityTitle
     });
     if (error && !error.message.toLowerCase().includes("duplicate")) {
       statusEl.textContent = "Error: " + error.message;
@@ -1339,6 +1340,7 @@ function openForm(record){
   }
   currentRowIndex=record?record.rowIndex:null;
   currentFormActivityId = record ? record.activityId : null;
+  currentFormActivityTitle = record ? record.title : null;
   document.getElementById("form-title").textContent=record?"Edit activity":"New activity";
   document.getElementById("btn-delete").style.display=record?"block":"none";
   document.getElementById("form-status").textContent="";
