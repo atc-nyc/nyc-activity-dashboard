@@ -349,16 +349,23 @@ input[list]::-webkit-calendar-picker-indicator{opacity:0.6;cursor:pointer}
         </div>
         <div id="admin-preapprove-status" style="font-size:12px;margin-top:8px;min-height:16px"></div>
 
-        <div style="border-top:1px solid #f0f0f0;margin-top:16px;padding-top:16px">
-          <input type="text" id="admin-preapprove-search" placeholder="Search by email..." oninput="filterPreApprovedList()"
-            style="width:100%;padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;margin-bottom:8px;outline:none;box-sizing:border-box">
-          <select id="admin-preapprove-filter-role" onchange="filterPreApprovedList()" style="width:100%;padding:6px 8px;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;margin-bottom:12px">
-            <option value="">All roles</option>
-            <option value="admin">Admin</option>
-            <option value="ad_user">AD User</option>
-            <option value="member">Member</option>
-          </select>
-          <div id="admin-preapprove-list" style="font-size:13px;color:#888">Loading...</div>
+        <div style="border-top:1px solid #f0f0f0;margin-top:16px;padding-top:12px">
+          <button type="button" onclick="togglePreApprovedList()" id="admin-preapprove-toggle"
+            style="width:100%;display:flex;align-items:center;justify-content:space-between;background:none;border:none;padding:4px 0;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a1a">
+            <span>Pending Pre-Approvals <span id="admin-preapprove-count" style="font-weight:400;color:#888">(0)</span></span>
+            <span id="admin-preapprove-chevron" style="color:#888;transition:transform .15s">&#9656;</span>
+          </button>
+          <div id="admin-preapprove-collapsible" style="display:none;margin-top:10px">
+            <input type="text" id="admin-preapprove-search" placeholder="Search by email..." oninput="filterPreApprovedList()"
+              style="width:100%;padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;margin-bottom:8px;outline:none;box-sizing:border-box">
+            <select id="admin-preapprove-filter-role" onchange="filterPreApprovedList()" style="width:100%;padding:6px 8px;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;margin-bottom:12px">
+              <option value="">All roles</option>
+              <option value="admin">Admin</option>
+              <option value="ad_user">AD User</option>
+              <option value="member">Member</option>
+            </select>
+            <div id="admin-preapprove-list" style="font-size:13px;color:#888">Loading...</div>
+          </div>
         </div>
       </div>
 
@@ -1979,7 +1986,16 @@ async function loadPreApprovedList() {
     .order("email");
   if (error) { el.textContent = "Couldn't load pre-approved emails."; return; }
   adminPreApprovedCache = data || [];
+  document.getElementById("admin-preapprove-count").textContent = `(${adminPreApprovedCache.length})`;
   filterPreApprovedList();
+}
+
+function togglePreApprovedList() {
+  const body = document.getElementById("admin-preapprove-collapsible");
+  const chevron = document.getElementById("admin-preapprove-chevron");
+  const isOpen = body.style.display !== "none";
+  body.style.display = isOpen ? "none" : "block";
+  chevron.style.transform = isOpen ? "rotate(0deg)" : "rotate(90deg)";
 }
 
 function filterPreApprovedList() {
