@@ -1469,6 +1469,7 @@ function getFormData(){
     zip,
     fullAddress,
     devoDesc:     "", // legacy -- Title now handles col K
+    title:        document.getElementById("f-title-field")?.value.trim()||"",
     description:  document.getElementById("f-devodesc").value,
     activity:     document.getElementById("f-activity-form").value,
     typeGroup: document.getElementById('f-typegroup-sel')?.value||'', //typeGroup_unused:    document.getElementById("f-typegroup").value,
